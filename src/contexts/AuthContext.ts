@@ -1,17 +1,18 @@
 import React from 'react'
 import { auth } from "../firebase";
 import {createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut} from "firebase/auth";
+import {IUser} from "../interfaces";
 
 export interface IAuthContextProps {
-    currentUser: {},
-    setCurrentUser: (user: {}) => void,
+    currentUser: IUser;
+    setCurrentUser: (user: IUser) => void,
     signUp: (email: string, password: string) =>  Promise<{}>,
     login: (email: string, password: string) =>  Promise<{}>,
     logout: () =>  Promise<void>
 }
 
 const defaultState: IAuthContextProps = {
-    currentUser: {},
+    currentUser: {userId: ''},
     setCurrentUser: () => {},
     signUp: (email: string, password: string) => {
         return createUserWithEmailAndPassword(auth, email, password);

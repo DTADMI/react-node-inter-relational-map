@@ -18,11 +18,12 @@ import {About} from "./components/content/About";
 export interface IAppProps {};
 
 const App: React.FunctionComponent<IAppProps> = (props) => {
-    const [currentUser, setCurrentUser] = useState({});
+    const [currentUser, setCurrentUser] = useState({userId: ""});
     const signUp = authService.signUpWithFirebaseEmailAndPassword;
     const login = authService.loginWithFirebaseEmailAndPassword;
     const logout = authService.logOutWithFirebase;
     const [isCardInCreation, setCardInCreation] = useState(false);
+    const [isPersonInCreation, setPersonInCreation] = useState(false);
     const [mapCards, setMapCards] = useState<Map<string, IMapCard>>(new Map<string, IMapCard>);
     const [currentMap, setCurrentMap] = useState<IMapCard>({} as IMapCard);
 
@@ -37,15 +38,17 @@ const App: React.FunctionComponent<IAppProps> = (props) => {
     const mapCardContextValue: IMapCardContextProps = useMemo(() => ({
         isCardInCreation,
         setCardInCreation,
+        isPersonInCreation,
+        setPersonInCreation,
         mapCards,
         setMapCards,
         currentMap,
         setCurrentMap
-    }), [isCardInCreation, mapCards, currentMap]);
+    }), [isCardInCreation, isPersonInCreation, mapCards, currentMap]);
 
     return (
       <AuthContext.Provider value={authContextValue}>
-        {Object.keys(currentUser).length !== 0 && <Navbar />}
+        {!!currentUser.userId && <Navbar />}
         <MapCardContext.Provider value={mapCardContextValue}>
             <Routes>
                 <Route

@@ -1,10 +1,10 @@
 import React, {useContext, useEffect, useRef, useState} from 'react';
-import { IMapCard} from "../../interfaces";
+import { IPersonCard} from "../../interfaces";
 import mapCardContext from "../../contexts/MapCardContext";
 import {useNavigate} from "react-router-dom";
 
-export const MapCard = ({mapName, mapDescription, imgSrc}: IMapCard) => {
-    const mapNameRef = useRef<HTMLInputElement>(null);
+export const StoryCard = (/*{mapName, mapDescription, imgSrc}: IMapCard*/) => {
+    /*const mapNameRef = useRef<HTMLInputElement>(null);
     const mapDescriptionRef = useRef<HTMLTextAreaElement>(null);
     const [error, setError] = useState('');
     const [oldMapName, setOldMapName] = useState("");
@@ -69,11 +69,11 @@ export const MapCard = ({mapName, mapDescription, imgSrc}: IMapCard) => {
         if(!isCreated && mapNameRef){
             mapNameRef.current?.focus();
         }
-    });
+    });*/
 
     return (
         <>
-            <div className="{/*col-md-4*/} col-12 col-md-6 col-lg-4">
+            {/*<div className="col-md-4 col-12 col-md-6 col-lg-4">
                 <div className="card">
                     {imgSrc && <img className="card-img-top" src={imgSrc} alt="Card image cap"/>}
                     <div className="card-body">
@@ -88,20 +88,20 @@ export const MapCard = ({mapName, mapDescription, imgSrc}: IMapCard) => {
                         }
                         {isCreated && <h6 className="card-title">{mapName}</h6>}
 
-                        {!isCreated && <div className="card-text"><div className="form-group row">
+                        {!isCreated && <div className="card-text mb-3"><div className="form-group row">
                             <div className="col-md-10">
                                 <textarea className="form-control" id="mapDescription" name="mapDescription" placeholder="Your relationship map description" ref={mapDescriptionRef}/>
                             </div>
                         </div></div>}
                         {isCreated && mapDescription && <p className="card-text">{mapDescription}</p>}
                         {!isCreated &&
-                            <div className="d-grid gap-3">
+                            <div className="d-grid gap-2">
                                 <button className="btn btn-primary"  onClick={handleCreateMapCard} disabled={isCreateBtnDisabled}>Create</button>
                                 <button className="btn btn-secondary" onClick={handleCancelMapCardCreation}>Cancel</button>
                             </div>
                             }
                         {isCreated &&
-                            <div className="d-grid gap-3">
+                            <div className="d-grid gap-2">
                                 <button className="btn btn-primary" onClick={handleEditMapCard}>Edit map</button>
                                 <button className="btn btn-secondary" onClick={handleDeleteMapCard}>Delete map</button>
                             </div>
@@ -109,7 +109,7 @@ export const MapCard = ({mapName, mapDescription, imgSrc}: IMapCard) => {
                     </div>
                     {error && <div className="alert alert-danger">{error}</div>}
                 </div>
-            </div>
+            </div>*/}
         </>
     );
 };

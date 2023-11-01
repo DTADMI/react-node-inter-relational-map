@@ -1,15 +1,20 @@
 import React, {useContext, useEffect, useRef, useState} from 'react';
-import { IMapCard} from "../../interfaces";
+import { IPersonCard} from "../../interfaces";
 import mapCardContext from "../../contexts/MapCardContext";
 import {useNavigate} from "react-router-dom";
-
-export const MapCard = ({mapName, mapDescription, imgSrc}: IMapCard) => {
-    const mapNameRef = useRef<HTMLInputElement>(null);
-    const mapDescriptionRef = useRef<HTMLTextAreaElement>(null);
+/*
+* personId: string,
+    names: Array<string>,
+    familyNames?: Array<string>,
+    titles?: Array<string>,
+    relations?: Array<string>,
+    stories?: Array<string>
+    * */
+export const PersonCard = ({names, familyNames, titles, relations, stories}: IPersonCard) => {
+    /*const mapNameRef = useRef<HTMLInputElement>(null);
+    const mapDescriptionRef = useRef<HTMLTextAreaElement>(null);*/
     const [error, setError] = useState('');
-    const [oldMapName, setOldMapName] = useState("");
-    const [oldMapDescription, setOldMapDescription] = useState("");
-    let isCreated = mapName !== "";
+    let isCreated = !!names.length;
     const {
         setCardInCreation,
         mapCards,
@@ -19,7 +24,7 @@ export const MapCard = ({mapName, mapDescription, imgSrc}: IMapCard) => {
     } = useContext(mapCardContext);
     const [isCreateBtnDisabled, setCreateBtnDisabled] = useState(true);
     const navigate = useNavigate();
-
+/*
     const handleCreateMapCard = () => {
         setOldMapName(mapName);
         mapName = mapNameRef?.current?.value ?? "";
@@ -69,14 +74,13 @@ export const MapCard = ({mapName, mapDescription, imgSrc}: IMapCard) => {
         if(!isCreated && mapNameRef){
             mapNameRef.current?.focus();
         }
-    });
+    });*/
 
     return (
         <>
-            <div className="{/*col-md-4*/} col-12 col-md-6 col-lg-4">
+            <div className="col-12 col-md-6 col-lg-4">
                 <div className="card">
-                    {imgSrc && <img className="card-img-top" src={imgSrc} alt="Card image cap"/>}
-                    <div className="card-body">
+                    {/*<div className="card-body">
                         {!isCreated &&
                             <h6 className="card-title">
                                 <div className="form-group row">
@@ -101,12 +105,12 @@ export const MapCard = ({mapName, mapDescription, imgSrc}: IMapCard) => {
                             </div>
                             }
                         {isCreated &&
-                            <div className="d-grid gap-3">
+                            <div className="d-grid gap-2">
                                 <button className="btn btn-primary" onClick={handleEditMapCard}>Edit map</button>
                                 <button className="btn btn-secondary" onClick={handleDeleteMapCard}>Delete map</button>
                             </div>
                         }
-                    </div>
+                    </div>*/}
                     {error && <div className="alert alert-danger">{error}</div>}
                 </div>
             </div>

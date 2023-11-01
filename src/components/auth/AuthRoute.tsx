@@ -2,6 +2,8 @@ import React, {useContext, useEffect, useState} from 'react';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { useNavigate } from 'react-router-dom';
 import authContext from "../../contexts/AuthContext";
+import {IUser} from "../../interfaces";
+import firebase from "firebase/compat";
 
 export interface IAuthRouteProps {}
 
@@ -17,10 +19,10 @@ const AuthRoute: React.FunctionComponent<IAuthRouteProps> = (props: React.PropsW
     useEffect(() => {
         const AuthCheck = onAuthStateChanged(auth, (user) => {
             if (user) {
-                setCurrentUser(user);
+                setCurrentUser({userId: user.uid});
                 setLoading(false);
             } else {
-                setCurrentUser({});
+                setCurrentUser({userId: ""});
                 console.log('unauthorized');
                 navigate('/login');
             }

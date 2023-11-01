@@ -12,7 +12,7 @@ export const Navbar = () => {
     } = useContext(authContext);
     const handleLogout = async () => {
         await logout();
-        setCurrentUser({});
+        setCurrentUser({userId: ""});
     }
 
     return (

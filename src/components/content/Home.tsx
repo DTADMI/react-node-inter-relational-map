@@ -4,6 +4,7 @@ import mapCardContext from "../../contexts/MapCardContext";
 import "./Home.css"
 import {MapCard} from "./MapCard";
 import {IMapCard} from "../../interfaces";
+import MapService from "../../services/MapService";
 
 export interface IHomeProps {}
 const Home: React.FunctionComponent<IHomeProps> = (props: React.PropsWithChildren<IHomeProps>) => {
@@ -14,9 +15,11 @@ const Home: React.FunctionComponent<IHomeProps> = (props: React.PropsWithChildre
         isCardInCreation,
         setCardInCreation,
         mapCards,
+        setMapCards,
         setCurrentMap
     } = useContext(mapCardContext);
     const [newImgSrc, setImgSrc] = useState("https://picsum.photos/180/100");
+    const emptyListPeople: Array<string> = [];
 
     const handleAddMap = (e: React.FormEvent) => {
         e.preventDefault();
@@ -24,13 +27,26 @@ const Home: React.FunctionComponent<IHomeProps> = (props: React.PropsWithChildre
     }
 
     useEffect(() => {
+        if(currentUser.userId){
+            MapService.getOwnedMapCards(currentUser.userId)
+                .then((response)=>{
+                    return response.json();
+                })
+                .then((data: IMapCard[])=>{
+                    let newMapOfCards = new Map<string, IMapCard>;
+                    data.forEach((card)=>{
+                        newMapOfCards.set(card.name, card);
+                    });
+                    setMapCards(newMapOfCards);
+                });
+        }
         setCurrentMap({} as IMapCard);
-    }, []);
+    }, [currentUser, isCardInCreation]);
 
     return (
         <>
             {
-                Object.keys(currentUser).length !== 0 &&
+                !!currentUser.userId &&
                 <div className="display-container">
                     <div className="actions-menu">
                         <div className="container">
@@ -45,10 +61,10 @@ const Home: React.FunctionComponent<IHomeProps> = (props: React.PropsWithChildre
                         <div className="container">
                             <div id="mapCards" className="row {/*row-cols-1 row-cols-md-3*/}">
                                 {Array.from(mapCards.values()).map((card, cardIdx) => (
-                                    <MapCard mapName={card.mapName} mapDescription={card.mapDescription} key={card.mapName} imgSrc={newImgSrc} />
+                                    <MapCard owner={currentUser.userId} id={card.id} name={card.name} description={card.description} key={card.name} imgSrc={newImgSrc} people={card.people} />
                                 ))}
                                 {isCardInCreation &&
-                                    <MapCard mapName="" mapDescription="" imgSrc={newImgSrc} />
+                                    <MapCard owner={currentUser.userId} name="" description="" imgSrc={newImgSrc} people={emptyListPeople}/>
                                 }
                             </div>
                         </div>
@@ -58,4 +74,4 @@ const Home: React.FunctionComponent<IHomeProps> = (props: React.PropsWithChildre
         </>
     )
 }
-export default Home
+export default Home;

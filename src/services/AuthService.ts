@@ -10,7 +10,7 @@ class AuthService {
         return signInWithEmailAndPassword(auth, email, password);
     }
     public async logOutWithFirebase () {
-        return signOut(auth);;
+        return signOut(auth);
     }
 
 }
