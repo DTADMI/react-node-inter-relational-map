@@ -4,7 +4,7 @@ import mapCardContext from "../../contexts/MapCardContext";
 import MapService from "../../services/MapService";
 import {useNavigate} from "react-router-dom";
 
-export const MapCard = ({owner, name, description, people, imgSrc}: IMapCard) => {
+export const MapCard = ({owner, name, description, people, relationships, imgSrc}: IMapCard) => {
     const nameRef = useRef<HTMLInputElement>(null);
     const descriptionRef = useRef<HTMLTextAreaElement>(null);
     const [error, setError] = useState('');
@@ -27,7 +27,7 @@ export const MapCard = ({owner, name, description, people, imgSrc}: IMapCard) =>
                 let newMapCards = new Map(Array.from(mapCards));
                 name = nameInput;
                 description = descriptionRef?.current?.value ?? "";
-                MapService.addMapCard({owner, name, description, people, imgSrc} as IMapCard)
+                MapService.addMapCard({owner, name, description, people, imgSrc, relationships} as IMapCard)
                     .then((response)=>{
                     return response.json();
                 }).then((mapCard: IMapCard)=>{
@@ -35,6 +35,8 @@ export const MapCard = ({owner, name, description, people, imgSrc}: IMapCard) =>
                     setMapCards(newMapCards);
                     isCreated = true;
                     setCardInCreation(false);
+                }).catch((error) => {
+                    console.error(`Error while creating map : ${JSON.stringify(error)}`);
                 });
             } else {
                 setError(`Another map was already named "${name}". \n You must provide a unique map name.`)

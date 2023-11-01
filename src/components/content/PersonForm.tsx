@@ -49,8 +49,12 @@ function PersonForm() {
                             .then((mapData: IMapCard) => {
                                 setCurrentMap(mapData);
                                 setPersonInCreation(false);
+                            }).catch((error) => {
+                                console.error(`Error while updating map : ${JSON.stringify(error)}`);
                             });
-                    })
+                    }).catch((error) => {
+                        console.error(`Error while creating person : ${JSON.stringify(error)}`);
+                    });
             } catch (err) {
                 setError("Something went wrong while creating this person. Please try again later");
             }

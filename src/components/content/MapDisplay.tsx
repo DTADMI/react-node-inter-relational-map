@@ -1,4 +1,4 @@
-import React, {FormEvent, useContext, useEffect, useState} from 'react';
+import React, {FormEvent, useCallback, useContext, useEffect, useMemo, useState} from 'react';
 import "./MapDisplay.css";
 import mapCardContext from "../../contexts/MapCardContext";
 import {useNavigate} from "react-router-dom";
@@ -7,9 +7,19 @@ import qs from "qs";
 import { createBrowserHistory } from "history";
 import MapService from "../../services/MapService";
 import authContext from "../../contexts/AuthContext";
-import {IMapCard, INodeData, IEdgeData, IPersonCard} from "../../interfaces";
+import {IMapCard, IPersonCard, IRelationCard} from "../../interfaces";
 import PersonForm from "./PersonForm";
 import PersonService from "../../services/PersonService";
+import {
+    addEdge,
+    applyEdgeChanges,
+    applyNodeChanges,
+    EdgeChange,
+    Node,
+    NodeChange,
+} from "reactflow";
+import {Connection, Edge} from "@reactflow/core/dist/esm/types";
+import RelationService from "../../services/RelationService";
 
 export const MapDisplay = () => {
 
@@ -26,8 +36,23 @@ export const MapDisplay = () => {
     } = useContext(mapCardContext);
 
     const [isPageLoading, setPageLoading] = useState(true);
-    const [nodesData, setNodesData] = useState([] as INodeData[]);
-    const [edgesData, setEdgesData] = useState([] as IEdgeData[]);
+
+    const [nodes, setNodes] = useState([] as Node[]);
+    const [edges, setEdges] = useState([] as Edge[]);
+
+
+    const onNodesChange = useCallback(
+        (changes: NodeChange[]) => setNodes((nds: Node[]) => applyNodeChanges(changes, nds)),
+        []
+    );
+    const onEdgesChange = useCallback(
+        (changes: EdgeChange[]) => setEdges((eds: Edge[]) => applyEdgeChanges(changes, eds)),
+        []
+    );
+
+    const onConnect = useCallback((params: Edge<any> | Connection) => setEdges((eds: Edge[]) => addEdge(params, eds)), []);
+
+
     const navigate = useNavigate();
     const history = createBrowserHistory();
     const startingXPosition = 550;
@@ -35,24 +60,66 @@ export const MapDisplay = () => {
     const moveRadiusX = 100;
     const moveRadiusY = 100;
 
+    const memoEdges = useMemo(
+        () => (edges),
+        [edges]
+    );
+    const memoNodes = useMemo(
+        () => (nodes),
+        [nodes]
+    );
+    const memoCurrentMap = useMemo(
+        () => (currentMap),
+        [currentMap]
+    );
+    const memoCurrentUser = useMemo(
+        () => (currentUser),
+        [currentUser]
+    );
+
 
     useEffect(() => {
-        if(isPageLoading && (!currentUser.userId || !currentMap.id)) {
+        if(isPageLoading && (!memoCurrentUser.userId || !memoCurrentMap.id)) {
             const filterParams = history.location.search.substring(1);
             const filtersFromParams = qs.parse(filterParams);
-            if(!currentUser.userId) {
+            if(!memoCurrentUser.userId) {
                 if (filtersFromParams.user) {
                     setCurrentUser({userId: filtersFromParams.user as string});
                 }
             }
 
-            if(!currentMap.id){
+            if(!memoCurrentMap.id){
                 if (filtersFromParams.mapId) {
                     MapService.getMapCardById(filtersFromParams.mapId as string)
                         .then((response) => {
                             return response.json();
-                        }).then((data: IMapCard) => {
-                        setCurrentMap(data)
+                        }).then((dataMap: IMapCard) => {
+                        setCurrentMap(dataMap);
+                        if(dataMap?.relationships?.size > 0){
+                            let newEdges = [] as Edge[];
+                            Array.from(dataMap.relationships).forEach((relationId: string, idx, arr) => {
+                                RelationService.getRelationCardById(relationId)
+                                    .then((response) => {
+                                        return response.json();
+                                    })
+                                    .then((relationData: IRelationCard) => {
+                                        const newEdge = {
+                                            id: relationData.id,
+                                            source: relationData.personSourceId,
+                                            target: relationData.personTargetId,
+                                            type: relationData.relationType ?? ""
+                                        } as Edge;
+                                        newEdges.push(newEdge);
+                                        if(idx === arr.length-1){
+                                            setEdges(newEdges);
+                                        }
+                                    }).catch((error) => {
+                                    console.error(`Error while getting relationships : ${JSON.stringify(error)}`);
+                                });
+                            });
+                        }
+                    }).catch((error)=>{
+                      console.error("Error while getting map id id");
                     }).finally(()=>{
                         setPageLoading(false);
                     });
@@ -70,22 +137,21 @@ export const MapDisplay = () => {
 
     useEffect(() => {
         if(!isPageLoading){
-            history.push(`?user=${currentUser.userId}&mapId=${currentMap.id}`);
+            history.push(`?user=${memoCurrentUser.userId}&mapId=${memoCurrentMap.id}`);
         }
-    }, [currentUser, currentMap, isPageLoading]);
+    }, [memoCurrentUser, memoCurrentMap, isPageLoading]);
 
     const handleAddPerson = (e: FormEvent) => {
         e.preventDefault();
         setPersonInCreation(true);
-
     };
 
 
     useEffect(() => {
-        if(!isPageLoading && currentMap.name){
-            if(currentMap.people.length > 0){
-                let newNodes = [] as INodeData[];
-                currentMap.people.forEach((personId: string, idx, arr) => {
+        if(!isPageLoading && memoCurrentMap.name){
+            if(memoCurrentMap?.people?.length > 0){
+                let newNodes = [] as Node[];
+                memoCurrentMap.people.forEach((personId: string, idx, arr) => {
                     PersonService.getPersonCardById(personId)
                         .then((response) => {
                             return response.json();
@@ -98,20 +164,70 @@ export const MapDisplay = () => {
                                     x: (idx % 2 === 0) ? (startingXPosition + (idx * moveRadiusX)) : (startingXPosition + (idx * moveRadiusX + moveRadiusX)),
                                     y: (startingYPosition + (idx * moveRadiusY + moveRadiusY))
                                 },
-                                type: "input"
-                            } as INodeData;
+                                type: idx === 0 ? "input" : ""
+                            } as Node;
                             newNodes.push(newNode);
                             if(idx === arr.length-1){
-                                setNodesData(newNodes);
+                                setNodes(newNodes);
                             }
+                        }).catch((error) => {
+                            console.error(`Error while getting people : ${JSON.stringify(error)}`);
                         });
                 });
             }
         }
-    }, [isPageLoading, currentMap]);
+    }, [isPageLoading, memoCurrentMap]);
+
 
     useEffect(() => {
-        if(!isPageLoading && !currentMap.name){
+        if(!isPageLoading && memoEdges?.length >0){
+            const newRels = new Set(memoEdges.map((ed) => {
+                return [ed.source, ed.target].join(":");
+            }));
+            const newMap = {...memoCurrentMap};
+            newMap.relationships = newRels;
+            setCurrentMap(newMap);
+        }
+    }, [memoEdges]);
+
+    useEffect(() => {
+        if(!isPageLoading ){
+            const newRelCards = new Set(memoEdges.map((ed) => {
+                return {
+                    personSourceId: ed.source,
+                    personTargetId: ed.target
+                } as IRelationCard;
+            }));
+            newRelCards.forEach((relCard: IRelationCard)=>{
+                RelationService.addRelationCard(relCard)
+                    .then((response)=>{
+                        return response.json();
+                    }).then((relation: IRelationCard)=>{
+                        console.log(`Relationship created : ${JSON.stringify(relation)}`);
+                    }).catch((error) => {
+                        console.error(`Error while creating relationships : ${JSON.stringify(error)}`);
+                    });
+            });
+
+            const newRels = new Set(memoEdges.map((ed) => {
+                return [ed.source, ed.target].join(":");
+            }));
+            const newMap = {...memoCurrentMap};
+            newMap.relationships = newRels;
+            MapService.updateMapCard(newMap)
+                .then((response)=>{
+                    return response.json();
+                })
+                .then((mapData: IMapCard) => {
+                    console.log(`map updated to ${JSON.stringify(mapData)}`);
+                });
+
+        }
+    }, [isPageLoading, memoEdges]);
+
+
+    useEffect(() => {
+        if(!isPageLoading && !memoCurrentMap.name){
             alert("No map is currently selected. Create a map and edit it, or select an existing one.");
             navigate("/home");
         }
@@ -126,7 +242,7 @@ export const MapDisplay = () => {
                             <div className="left-side-container">
                                 <div className="left-side-title-container left-side-title-adjustments">
                                     <div className="left-side-title-input-container">
-                                        <h3  className="left-side-title-input left-side-content-wrapper">{currentMap.name}</h3>
+                                        <h3  className="left-side-title-input left-side-content-wrapper">{memoCurrentMap.name}</h3>
                                     </div>
                                 </div>
                                 <div className="left-side-content-wrapper">
@@ -147,15 +263,11 @@ export const MapDisplay = () => {
                             </div>
                         </div>
                     </div>
-                    {/*<Form className="d-grid gap-3">
-                        <Button onClick={() => { navigate("/solomode")}}>Solo Mode</Button>
-                        <Button onClick={() => { navigate("/multiplayermode")}}>2 players Mode</Button>
-                    </Form>*/}
                 </div>
                 <div className="content-wrapper">
                     <div></div>
                     <div className="display-container">
-                        {currentMap?.people?.length === 0 &&
+                        {memoCurrentMap?.people?.length === 0 &&
                             <div className="actions-menu">
                                 <div className="container">
                                     <div className="row">
@@ -168,7 +280,7 @@ export const MapDisplay = () => {
                         }
                         <div className="scroll-wrapper">
                             <div style={{ width: "200vh", height: "100vh" }}>
-                                <Flow nodesData={nodesData} edgesData={edgesData} />
+                                <Flow nodesData={nodes} edgesData={edges} setNodes={setNodes} setEdges={setEdges} onNodesChange={onNodesChange} onEdgesChange={onEdgesChange} onConnect={onConnect} />
                             </div>
                         </div>
                     </div>

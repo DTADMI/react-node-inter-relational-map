@@ -1,4 +1,4 @@
-import {useCallback, useEffect} from 'react';
+import React, {useState, useCallback, useEffect} from 'react';
 import ReactFlow, {
     MiniMap,
     Controls,
@@ -6,6 +6,8 @@ import ReactFlow, {
     useNodesState,
     useEdgesState,
     addEdge,
+    applyEdgeChanges,
+    applyNodeChanges
 } from 'reactflow';
 
 import 'reactflow/dist/style.css';
@@ -20,24 +22,12 @@ const initialNodes = [
 
 const initialEdges = [{ id: 'e1-2', source: '1', target: '2' }];
 
-const Flow = ({nodesData, edgesData}: IFlow) => {
-    const [nodes, setNodes, onNodesChange] = useNodesState(nodesData);
-    const [edges, setEdges, onEdgesChange] = useEdgesState(edgesData);
-
-    const onConnect = useCallback((params: Edge | Connection) => setEdges((eds: Edge[]) => addEdge(params, eds)), [setEdges]);
-
-    useEffect(()=>{
-        setNodes(nodesData);
-    }, [nodesData]);
-
-    useEffect(()=>{
-        setEdges(edgesData);
-    }, [edgesData]);
+const Flow = ({nodesData, edgesData, setNodes, setEdges, onNodesChange, onEdgesChange, onConnect}: IFlow) => {
 
     return (
         <ReactFlow
-            nodes={nodes}
-            edges={edges}
+            nodes={nodesData}
+            edges={edgesData}
             onNodesChange={onNodesChange}
             onEdgesChange={onEdgesChange}
             onConnect={onConnect}
@@ -49,4 +39,4 @@ const Flow = ({nodesData, edgesData}: IFlow) => {
     );
 };
 
-export default Flow;
+export default React.memo(Flow);

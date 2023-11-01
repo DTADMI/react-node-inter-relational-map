@@ -3,7 +3,7 @@ import authContext from "../../contexts/AuthContext";
 import mapCardContext from "../../contexts/MapCardContext";
 import "./Home.css"
 import {MapCard} from "./MapCard";
-import {IMapCard} from "../../interfaces";
+import {IMapCard, IRelationCard} from "../../interfaces";
 import MapService from "../../services/MapService";
 
 export interface IHomeProps {}
@@ -19,7 +19,6 @@ const Home: React.FunctionComponent<IHomeProps> = (props: React.PropsWithChildre
         setCurrentMap
     } = useContext(mapCardContext);
     const [newImgSrc, setImgSrc] = useState("https://picsum.photos/180/100");
-    const emptyListPeople: Array<string> = [];
 
     const handleAddMap = (e: React.FormEvent) => {
         e.preventDefault();
@@ -38,6 +37,8 @@ const Home: React.FunctionComponent<IHomeProps> = (props: React.PropsWithChildre
                         newMapOfCards.set(card.name, card);
                     });
                     setMapCards(newMapOfCards);
+                }).catch((error) => {
+                    console.error(`Error while getting owned maps : ${JSON.stringify(error)}`);
                 });
         }
         setCurrentMap({} as IMapCard);
@@ -61,10 +62,10 @@ const Home: React.FunctionComponent<IHomeProps> = (props: React.PropsWithChildre
                         <div className="container">
                             <div id="mapCards" className="row {/*row-cols-1 row-cols-md-3*/}">
                                 {Array.from(mapCards.values()).map((card, cardIdx) => (
-                                    <MapCard owner={currentUser.userId} id={card.id} name={card.name} description={card.description} key={card.name} imgSrc={newImgSrc} people={card.people} />
+                                    <MapCard owner={currentUser.userId} id={card.id} name={card.name} description={card.description} key={card.name} imgSrc={newImgSrc} people={card.people} relationships={card.relationships} />
                                 ))}
                                 {isCardInCreation &&
-                                    <MapCard owner={currentUser.userId} name="" description="" imgSrc={newImgSrc} people={emptyListPeople}/>
+                                    <MapCard owner={currentUser.userId} name="" description="" imgSrc={newImgSrc} people={[] as string[]} relationships={new Set<string>}/>
                                 }
                             </div>
                         </div>
