@@ -13,7 +13,7 @@ env:
 
 jobs:
   build-and-deploy:
-    name: Setupe, Build and Deploy
+    name: Setup, Build and Deploy
     runs-on: ubuntu-latest
     steps:
     - name: Checkout
@@ -30,7 +30,7 @@ jobs:
       uses: google-github-actions/setup-gcloud@v0
 
     - name: Authorize Docker push
-      run: gcloud auth configure-docker
+      run: gcloud auth configure-docker --quiet
 
     - name: Build and tag the docker image
       run: |-
@@ -38,7 +38,7 @@ jobs:
 
     - name: Push the image to the Google Container Registry (GCR)
       run: |-
-        docker build . --tag gcr.io/$PROJECT_ID/$REPO_NAME:$GITHUB_SHA
+        docker push gcr.io/$PROJECT_ID/$REPO_NAME:$GITHUB_SHA
 
     - name: Deploy
       run: |-
