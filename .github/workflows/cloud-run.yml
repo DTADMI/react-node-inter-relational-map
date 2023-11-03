@@ -9,7 +9,7 @@ on:
 env:
   PROJECT_ID: ${{ secrets.CLOUD_RUN_PROJECT_NAME }}
   REGION: northamerica-northeast1
-  REPO_NAME: react-interpersonal-map
+  IMAGE_NAME: interpersonal-map-app
 
 jobs:
   build-and-deploy:
@@ -34,14 +34,29 @@ jobs:
     - name: Authorize Docker push
       run: gcloud auth configure-docker --quiet
 
-    - name: Build and tag the docker image
+    - name: Build Docker Image
       run: |-
-        docker build . --tag gcr.io/$PROJECT_ID/$REPO_NAME:$GITHUB_SHA
+        docker build -t $IMAGE_NAME:latest .
 
-    - name: Push the image to the Google Container Registry (GCR)
+    - name: Automatic Tagging of Releases
+      id: increment-git-tag
+      run: |
+        bash ./scripts/git_update.sh -v patch
+
+    - name: Tag Docker image
+      env:
+        GIT_TAG: ${{ steps.increment-git-tag.outputs.git-tag }}
       run: |-
-        docker push gcr.io/$PROJECT_ID/$REPO_NAME:$GITHUB_SHA
+        docker tag $IMAGE_NAME:latest gcr.io/$PROJECT_ID/$IMAGE_NAME:latest
+        docker tag $IMAGE_NAME:latest gcr.io/$PROJECT_ID/$IMAGE_NAME:$GIT_TAG
+
+    - name: Push Docker image to Google Container Registry (GCR)
+      env:
+        GIT_TAG: ${{ steps.increment-git-tag.outputs.git-tag }}
+      run: |-
+        docker push gcr.io/$PROJECT_ID/$IMAGE_NAME:latest
+        docker push gcr.io/$PROJECT_ID/$IMAGE_NAME:$GIT_TAG
 
     - name: Deploy
       run: |-
-        gcloud run deploy $REPO_NAME --region $REGION --image gcr.io/$PROJECT_ID/$REPO_NAME:$GITHUB_SHA --platform "managed" --quiet
+        gcloud run deploy $IMAGE_NAME --image gcr.io/$PROJECT_ID/$IMAGE_NAME:latest --region $REGION
