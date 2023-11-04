@@ -239,7 +239,7 @@ export const MapDisplay = () => {
                 } as IRelationCard;
             }));
             Array.from(newRelCards).filter((relCard)=> {
-                return !currentMap.relationships.has([relCard.personSourceId, relCard.personTargetId].join(":"));
+                return (currentMap?.relationships && !currentMap.relationships.has([relCard.personSourceId, relCard.personTargetId].join(":"))) || false;
             }).forEach((relCard: IRelationCard)=>{
                 RelationService.addRelationCard(relCard)
                     .then((response)=>{
