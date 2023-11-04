@@ -1,15 +1,15 @@
 import React from 'react'
-import {IMapCard} from "../interfaces";
+import {IMapCardUnserialized} from "../interfaces";
 
 export interface IMapCardContextProps {
     isCardInCreation: boolean,
     setCardInCreation: (cardInCreation: boolean) => void,
     isPersonInCreation: boolean,
     setPersonInCreation: (cardInCreation: boolean) => void,
-    mapCards: Map<string, IMapCard>,
-    setMapCards: (mapCards: Map<string, IMapCard>) => void,
-    currentMap:IMapCard,
-    setCurrentMap: (currentMap: IMapCard) => void
+    mapCards: Map<string, IMapCardUnserialized>,
+    setMapCards: (mapCards: Map<string, IMapCardUnserialized>) => void,
+    currentMap:IMapCardUnserialized,
+    setCurrentMap: (currentMap: IMapCardUnserialized) => void
 }
 
 const defaultState: IMapCardContextProps = {
@@ -17,9 +17,9 @@ const defaultState: IMapCardContextProps = {
     setCardInCreation: () => {},
     isPersonInCreation: false,
     setPersonInCreation: () => {},
-    mapCards: new Map<string, IMapCard>,
+    mapCards: new Map<string, IMapCardUnserialized>(),
     setMapCards: () => {},
-    currentMap: {} as IMapCard,
+    currentMap: {} as IMapCardUnserialized,
     setCurrentMap: () => {}
 };
 

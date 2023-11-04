@@ -1,9 +1,10 @@
-import React, {useContext, useRef, useState} from 'react'
-import {Button, Card, Container, Form} from "react-bootstrap";
+import React, {useContext, useState} from 'react'
+import {Card, Container, Form} from "react-bootstrap";
 import mapCardContext from "../../contexts/MapCardContext";
 import PersonService from "../../services/PersonService";
-import {IMapCard, IPersonCard} from "../../interfaces";
+import {IMapCardSerialized, IPersonCard} from "../../interfaces";
 import MapService from "../../services/MapService";
+import {serializeMapCardObject, unserializeMapCardObject} from "../../common/functions";
 
 function PersonForm() {
 
@@ -22,8 +23,6 @@ function PersonForm() {
     const [familyNames, setFamilyNames] = useState([] as string[]);
     const [titles, setTitles] = useState([] as string[]);
 
-    const namesInputRef = useRef<HTMLInputElement>(null);
-
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
@@ -37,7 +36,7 @@ function PersonForm() {
                         return response.json();
                     })
                     .then((personData: IPersonCard)=>{
-                        const mapCard = {...currentMap};
+                        const mapCard = serializeMapCardObject(currentMap);
                         if (personData.id) {
                             mapCard.people.push(personData.id);
                         }
@@ -46,8 +45,8 @@ function PersonForm() {
                             .then((response) => {
                                 return response.json();
                             })
-                            .then((mapData: IMapCard) => {
-                                setCurrentMap(mapData);
+                            .then((mapData: IMapCardSerialized) => {
+                                setCurrentMap(unserializeMapCardObject(mapData));
                                 setPersonInCreation(false);
                             }).catch((error) => {
                                 console.error(`Error while updating map : ${JSON.stringify(error)}`);
@@ -126,71 +125,102 @@ function PersonForm() {
     };
 
     return (
-        <>
-            <Container
-                className="d-flex align-items-center justify-content-center"
-                style={{ minHeight: "50vh"}}>
-                <div className="w-100" style={{ maxWidth: "400px"}}>
-                    <Card>
-                        <Card.Body>
-                            <h5 className="text-center mb-4">Add a new person</h5>
-                            {error && <div className="alert alert-danger">{error}</div>}
-                            <Form onSubmit={handleSubmit}>
-                                <div className="input-group" style={{ marginBottom: "1rem" }}>
+        <Container
+            className="d-flex align-items-center justify-content-center"
+            style={{minHeight: "50vh"}}>
+            <div className="w-100" style={{maxWidth: "400px"}}>
+                <Card>
+                    <Card.Body>
+                        <h5 className="text-center mb-4">Add a new person</h5>
+                        {error && <div className="alert alert-danger">{error}</div>}
+                        <Form onSubmit={handleSubmit}>
+                            <div className="input-group" style={{marginBottom: "1rem"}}>
                                   <span className="input-group-btn">
-                                      <button type="button" className="btn btn-danger" data-type="minus" style={{ height: "-webkit-fill-available" }} onClick={handleRemoveName}>
+                                      <button type="button" className="btn btn-danger" style={{height: "-webkit-fill-available"}} onClick={handleRemoveName}>
                                         <span className="glyphicon glyphicon-minus">-</span>
                                       </button>
                                   </span>
-                                    <input type="text" name="namesInput" id="namesInput" className="form-control-plaintext" value={namesInput} placeholder="Names" onChange={(e) => setNamesInput(e.target.value)} style={{ width: "55%", border: "1px solid royalblue", borderRadius: "1rem", marginLeft: "1rem", marginRight: "1rem",
-                                        textAlign: "center"}}/>
-                                  <span className="input-group-btn">
-                                      <button type="button" className="btn btn-success" data-type="plus" style={{ height: "-webkit-fill-available" }} onClick={handleAddName}>
+                                <input type="text" name="namesInput" id="namesInput" className="form-control-plaintext"
+                                       value={namesInput} placeholder="Names"
+                                       onChange={(e) => setNamesInput(e.target.value)} style={{
+                                    width: "55%",
+                                    border: "1px solid royalblue",
+                                    borderRadius: "1rem",
+                                    marginLeft: "1rem",
+                                    marginRight: "1rem",
+                                    textAlign: "center"
+                                }}/>
+                                <span className="input-group-btn">
+                                      <button type="button" className="btn btn-success" style={{height: "-webkit-fill-available"}} onClick={handleAddName}>
                                           <span className="glyphicon glyphicon-plus">+</span>
                                       </button>
                                   </span>
-                                  {!!names.length && <span>{names.reduce((prev, curr) => {return !prev ? curr : prev + "; " + curr})}</span>}
-                                </div>
-                                <div className="input-group" style={{ marginBottom: "1rem" }}>
+                                {!!names.length && <span>{names.reduce((prev, curr) => {
+                                    return !prev ? curr : prev + "; " + curr
+                                })}</span>}
+                            </div>
+                            <div className="input-group" style={{marginBottom: "1rem"}}>
                                   <span className="input-group-btn">
-                                      <button type="button" className="btn btn-danger" data-type="minus" style={{ height: "-webkit-fill-available" }} onClick={handleRemoveFamilyName}>
+                                      <button type="button" className="btn btn-danger" style={{height: "-webkit-fill-available"}}
+                                              onClick={handleRemoveFamilyName}>
                                         <span className="glyphicon glyphicon-minus">-</span>
                                       </button>
                                   </span>
-                                    <input type="text" name="familyNamesInput" id="familyNamesInput" className="form-control-plaintext" value={familyNamesInput} placeholder="Family Names" onChange={(e) => setFamilyNamesInput(e.target.value)} style={{ width: "55%", border: "1px solid royalblue", borderRadius: "1rem", marginLeft: "1rem", marginRight: "1rem",
-                                        textAlign: "center"}}/>
-                                    <span className="input-group-btn">
-                                      <button type="button" className="btn btn-success" data-type="plus" style={{ height: "-webkit-fill-available" }} onClick={handleAddFamilyName}>
+                                <input type="text" name="familyNamesInput" id="familyNamesInput"
+                                       className="form-control-plaintext" value={familyNamesInput}
+                                       placeholder="Family Names" onChange={(e) => setFamilyNamesInput(e.target.value)}
+                                       style={{
+                                           width: "55%",
+                                           border: "1px solid royalblue",
+                                           borderRadius: "1rem",
+                                           marginLeft: "1rem",
+                                           marginRight: "1rem",
+                                           textAlign: "center"
+                                       }}/>
+                                <span className="input-group-btn">
+                                      <button type="button" className="btn btn-success" style={{height: "-webkit-fill-available"}} onClick={handleAddFamilyName}>
                                           <span className="glyphicon glyphicon-plus">+</span>
                                       </button>
                                   </span>
-                                    {!!familyNames.length && <span>{familyNames.reduce((prev, curr) => {return !prev ? curr : prev + "; " + curr})}</span>}
-                                </div>
-                                <div className="input-group" style={{ marginBottom: "1rem" }}>
+                                {!!familyNames.length && <span>{familyNames.reduce((prev, curr) => {
+                                    return !prev ? curr : prev + "; " + curr
+                                })}</span>}
+                            </div>
+                            <div className="input-group" style={{marginBottom: "1rem"}}>
                                   <span className="input-group-btn">
-                                      <button type="button" className="btn btn-danger" data-type="minus" style={{ height: "-webkit-fill-available" }} onClick={handleRemoveTitle}>
+                                      <button type="button" className="btn btn-danger" style={{height: "-webkit-fill-available"}} onClick={handleRemoveTitle}>
                                         <span className="glyphicon glyphicon-minus">-</span>
                                       </button>
                                   </span>
-                                    <input type="text" name="titlesInput" id="titlesInput" className="form-control-plaintext" value={titlesInput} placeholder="Titles" onChange={(e) => setTitlesInput(e.target.value)} style={{ width: "55%", border: "1px solid royalblue", borderRadius: "1rem", marginLeft: "1rem", marginRight: "1rem",
-                                        textAlign: "center"}}/>
-                                    <span className="input-group-btn">
-                                      <button type="button" className="btn btn-success" data-type="plus" style={{ height: "-webkit-fill-available" }} onClick={handleAddTitle}>
+                                <input type="text" name="titlesInput" id="titlesInput"
+                                       className="form-control-plaintext" value={titlesInput} placeholder="Titles"
+                                       onChange={(e) => setTitlesInput(e.target.value)} style={{
+                                    width: "55%",
+                                    border: "1px solid royalblue",
+                                    borderRadius: "1rem",
+                                    marginLeft: "1rem",
+                                    marginRight: "1rem",
+                                    textAlign: "center"
+                                }}/>
+                                <span className="input-group-btn">
+                                      <button type="button" className="btn btn-success" style={{height: "-webkit-fill-available"}} onClick={handleAddTitle}>
                                           <span className="glyphicon glyphicon-plus">+</span>
                                       </button>
                                   </span>
-                                    {!!titles.length && <span>{titles.reduce((prev, curr) => {return !prev ? curr : prev + "; " + curr})}</span>}
-                                </div>
-                                <div className="d-grid gap-2">
-                                    <button className="btn btn-primary"  type="submit" disabled={loading}>Create</button>
-                                    <button className="btn btn-secondary" onClick={handleCancelPersonCardCreation}>Cancel</button>
-                                </div>
-                            </Form>
-                        </Card.Body>
-                    </Card>
-                </div>
-            </Container>
-        </>
+                                {!!titles.length && <span>{titles.reduce((prev, curr) => {
+                                    return !prev ? curr : prev + "; " + curr
+                                })}</span>}
+                            </div>
+                            <div className="d-grid gap-2">
+                                <button className="btn btn-primary" type="submit" disabled={loading}>Create</button>
+                                <button className="btn btn-secondary" onClick={handleCancelPersonCardCreation}>Cancel
+                                </button>
+                            </div>
+                        </Form>
+                    </Card.Body>
+                </Card>
+            </div>
+        </Container>
     )
 }
 

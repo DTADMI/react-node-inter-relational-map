@@ -6,7 +6,7 @@ import { Link, useNavigate } from "react-router-dom";
 const Login = () => {
     const emailRef = useRef<HTMLInputElement>(null);
     const passwordRef = useRef<HTMLInputElement>(null);
-    const {login, currentUser} = useContext(authContext);
+    const {login} = useContext(authContext);
     const [error, setError] = React.useState('');
     const [loading, setLoading] = React.useState(false);
     const navigate = useNavigate();

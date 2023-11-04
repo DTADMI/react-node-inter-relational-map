@@ -10,7 +10,7 @@ import Login from "./components/auth/Login";
 import {MapDisplay} from "./components/content/MapDisplay";
 import {Navbar} from "./components/nav/Navbar";
 import "./App.css";
-import {IMapCard} from "./interfaces";
+import {IMapCardUnserialized} from "./interfaces";
 import {Footer} from "./components/content/Footer";
 import {About} from "./components/content/About";
 
@@ -24,8 +24,8 @@ const App: React.FunctionComponent<IAppProps> = (props) => {
     const logout = authService.logOutWithFirebase;
     const [isCardInCreation, setCardInCreation] = useState(false);
     const [isPersonInCreation, setPersonInCreation] = useState(false);
-    const [mapCards, setMapCards] = useState<Map<string, IMapCard>>(new Map<string, IMapCard>);
-    const [currentMap, setCurrentMap] = useState<IMapCard>({} as IMapCard);
+    const [mapCards, setMapCards] = useState<Map<string, IMapCardUnserialized>>(new Map<string, IMapCardUnserialized>());
+    const [currentMap, setCurrentMap] = useState<IMapCardUnserialized>({} as IMapCardUnserialized);
 
     const authContextValue: IAuthContextProps = useMemo(() => ({
         currentUser,
@@ -89,12 +89,6 @@ const App: React.FunctionComponent<IAppProps> = (props) => {
                         </AuthRoute>
                     }
                 />
-                {/*<Route exact path="/dashboard"> <Dashboard/> </Route>
-          <Route exact path="/profile"> <Profile/> </Route>
-          <Route exact path="/settings"> <Settings/> </Route>*/}
-                {/*<Route exact path="/404"> <NotFound/> </Route>
-          <Route exact path="/500"> <ServerError/> </Route>
-          <Route> <NotFound/> </Route>*/}
             </Routes>
         </MapCardContext.Provider>
         <Footer />

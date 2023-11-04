@@ -7,7 +7,7 @@ const Signup = () => {
     const emailRef = useRef<HTMLInputElement>(null);
     const passwordRef = useRef<HTMLInputElement>(null);
     const passwordConfirmRef = useRef<HTMLInputElement>(null);
-    const {signUp, currentUser} = useContext(authContext);
+    const {signUp} = useContext(authContext);
     const [error, setError] = React.useState('');
     const [loading, setLoading] = React.useState(false);
     const navigate = useNavigate();

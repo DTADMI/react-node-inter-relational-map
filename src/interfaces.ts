@@ -13,9 +13,16 @@ export interface IMapCard {
     name: string,
     description?: string,
     people: Array<string>,
-    relationships: Set<string>,
     imgSrc?: string,
     owner: string
+}
+
+export interface IMapCardSerialized extends IMapCard {
+    relationships: Array<string>
+}
+
+export interface IMapCardUnserialized extends IMapCard {
+    relationships: Set<string>
 }
 
 export interface IPersonCard {

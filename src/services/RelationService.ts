@@ -38,4 +38,5 @@ class RelationService {
 
 }
 
-export default new RelationService();
+const RELATION_SERVICE = new RelationService();
+export default RELATION_SERVICE;

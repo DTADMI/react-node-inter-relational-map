@@ -2,12 +2,11 @@ import React from "react";
 
 export const About = () => {
     return (
-        <>
-            <div className="display-container">
-                <div className="scroll-wrapper">
-                    <div className="container">
-                        <h3>About this application</h3>
-                        <span>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Arcu risus quis varius quam quisque. Aliquet bibendum enim facilisis gravida neque convallis a cras semper. Nisl suscipit adipiscing bibendum est. Ultricies mi eget mauris pharetra et ultrices neque ornare. Lorem sed risus ultricies tristique nulla. Sapien nec sagittis aliquam malesuada bibendum arcu vitae. Egestas fringilla phasellus faucibus scelerisque eleifend donec pretium vulputate sapien. Orci nulla pellentesque dignissim enim. Nisl nisi scelerisque eu ultrices vitae auctor. Enim nec dui nunc mattis enim ut. Faucibus interdum posuere lorem ipsum dolor sit amet consectetur. Ut enim blandit volutpat maecenas volutpat blandit aliquam etiam erat.
+        <div className="display-container">
+            <div className="scroll-wrapper">
+                <div className="container">
+                    <h3>About this application</h3>
+                    <span>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Arcu risus quis varius quam quisque. Aliquet bibendum enim facilisis gravida neque convallis a cras semper. Nisl suscipit adipiscing bibendum est. Ultricies mi eget mauris pharetra et ultrices neque ornare. Lorem sed risus ultricies tristique nulla. Sapien nec sagittis aliquam malesuada bibendum arcu vitae. Egestas fringilla phasellus faucibus scelerisque eleifend donec pretium vulputate sapien. Orci nulla pellentesque dignissim enim. Nisl nisi scelerisque eu ultrices vitae auctor. Enim nec dui nunc mattis enim ut. Faucibus interdum posuere lorem ipsum dolor sit amet consectetur. Ut enim blandit volutpat maecenas volutpat blandit aliquam etiam erat.
 
 Ipsum consequat nisl vel pretium lectus. Id velit ut tortor pretium viverra suspendisse potenti nullam. Amet mattis vulputate enim nulla aliquet porttitor lacus. Diam donec adipiscing tristique risus nec feugiat. Id ornare arcu odio ut sem nulla pharetra diam sit. Diam quam nulla porttitor massa id. Ut sem nulla pharetra diam. Aliquet bibendum enim facilisis gravida. Consequat ac felis donec et odio pellentesque diam volutpat commodo. Quis auctor elit sed vulputate mi sit amet mauris. Viverra adipiscing at in tellus integer feugiat scelerisque varius morbi. Id aliquet risus feugiat in ante metus. Nec ullamcorper sit amet risus nullam eget felis. Tortor at risus viverra adipiscing at. Nunc id cursus metus aliquam eleifend mi in nulla posuere. Enim sit amet venenatis urna. Tristique et egestas quis ipsum. Nunc vel risus commodo viverra maecenas. Venenatis urna cursus eget nunc scelerisque. Dignissim diam quis enim lobortis scelerisque fermentum.
 
@@ -26,9 +25,8 @@ Malesuada proin libero nunc consequat. Morbi non arcu risus quis. Gravida cum so
 Mi proin sed libero enim sed faucibus turpis. Sit amet justo donec enim diam vulputate ut. Sapien nec sagittis aliquam malesuada bibendum arcu vitae. Dolor sit amet consectetur adipiscing elit pellentesque habitant morbi. Felis donec et odio pellentesque diam volutpat commodo sed. Dui ut ornare lectus sit amet. Elementum pulvinar etiam non quam lacus suspendisse faucibus. Est sit amet facilisis magna etiam tempor. Elit ut aliquam purus sit amet. Placerat orci nulla pellentesque dignissim enim sit amet venenatis. Ut tortor pretium viverra suspendisse. Elementum pulvinar etiam non quam lacus suspendisse faucibus interdum. Vel orci porta non pulvinar neque laoreet suspendisse. Quam viverra orci sagittis eu volutpat odio. Urna porttitor rhoncus dolor purus non enim praesent elementum. Odio facilisis mauris sit amet massa vitae. Ullamcorper eget nulla facilisi etiam dignissim. Turpis egestas sed tempus urna et.
 
 At lectus urna duis convallis. At urna condimentum mattis pellentesque id nibh tortor. Sed viverra ipsum nunc aliquet bibendum enim facilisis gravida neque. Lacus sed viverra tellus in. Aliquam purus sit amet luctus venenatis lectus. Amet consectetur adipiscing elit duis. Porttitor eget dolor morbi non arcu risus quis. In hendrerit gravida rutrum quisque non tellus orci ac. In fermentum et sollicitudin ac orci phasellus egestas. Sit amet venenatis urna cursus eget nunc scelerisque viverra.</span>
-                    </div>
                 </div>
             </div>
-        </>
+        </div>
     );
 };

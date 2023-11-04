@@ -1,11 +1,9 @@
 import React, {useContext} from 'react';
-import {Link, useNavigate} from "react-router-dom";
 import {Button} from "react-bootstrap";
 import authContext from "../../contexts/AuthContext";
 import "./Navbar.css";
 export const Navbar = () => {
 
-    const navigate = useNavigate();
     const {
         setCurrentUser,
         logout
@@ -25,7 +23,6 @@ export const Navbar = () => {
             <div className="collapse navbar-collapse" id="navbarText">
                 <ul className="navbar-nav mr-auto">
                     <li className="nav-item active">
-                        {/*<Button className="nav-link btn btn-dark" onClick={() => navigate("/home")} >Home</Button>*/}
                         <a className="nav-link btn btn-light btn-outline-primary" href="/home">Home</a>
                     </li>
                     <li className="nav-item">
