@@ -1,4 +1,4 @@
-import React, {FormEvent, useCallback, useContext, useEffect, useMemo, useState} from 'react';
+import React, {useCallback, useContext, useEffect, useMemo, useState} from 'react';
 import "./MapDisplay.css";
 import mapCardContext from "../../../contexts/MapCardContext";
 import {useNavigate} from "react-router-dom";
@@ -8,7 +8,6 @@ import { createBrowserHistory } from "history";
 import MapService from "../../../services/MapService";
 import authContext from "../../../contexts/AuthContext";
 import {IMapCardSerialized, IMapCardUnserialized, IPersonCard, IRelationCard, IUser} from "../../../interfaces";
-import PersonForm from "../PersonForm/PersonForm";
 import PersonService from "../../../services/PersonService";
 import {
     addEdge,
@@ -21,6 +20,7 @@ import {
 import {Connection, Edge} from "@reactflow/core/dist/esm/types";
 import RelationService from "../../../services/RelationService";
 import {serializeMapCardObject, unserializeMapCardObject} from "../../../common/functions";
+import {MapsActionMenu} from "../../nav/MapsActionMenu/MapsActionMenu";
 
 const LOCAL_STORAGE_KEY = "CURRENT_USER";
 
@@ -83,7 +83,7 @@ export const MapDisplay = () => {
 
     }
 
-    const [isPageLoading, setPageLoading] = useState(true);
+    const [isPageLoading, setIsPageLoading] = useState(true);
 
     const [nodes, setNodes] = useState([] as Node[]);
     const [edges, setEdges] = useState([] as Edge[]);
@@ -180,10 +180,10 @@ export const MapDisplay = () => {
             const callback = (map: IMapCardUnserialized) => {
                 if(Object.keys(map).length){
                     setCurrentMap(map);
-                    setPageLoading(false);
+                    setIsPageLoading(false);
                 } else {
                     alert("No map is currently selected. Create a map and edit it, or select an existing one.");
-                    setPageLoading(false);
+                    setIsPageLoading(false);
                     navigate("/home");
                 }
             }
@@ -191,7 +191,7 @@ export const MapDisplay = () => {
 
             if(!Object.keys(currentUser).length) {
                 alert("User disconnected");
-                setPageLoading(false);
+                setIsPageLoading(false);
                 navigate("/home");
             }
 
@@ -203,12 +203,6 @@ export const MapDisplay = () => {
             history.push(`?mapId=${memoCurrentMap.id}`);
         }
     }, [memoCurrentMap, isPageLoading]);
-
-    const handleAddPerson = (e: FormEvent) => {
-        e.preventDefault();
-        setPersonInCreation(true);
-    };
-
 
     useEffect(() => {
         if(isPageLoading && memoCurrentMap.name){
@@ -266,61 +260,79 @@ export const MapDisplay = () => {
     }, [isPageLoading, memoEdges]);
 
     return (
-        <div className="main-container">
-            <div className="side-wrapper">
-                <div className="side-container">
-                    <div className="left-side-wrapper">
-                        <div className="left-side-container">
-                            <div className="left-side-title-container left-side-title-adjustments">
-                                <div className="left-side-title-input-container">
-                                    <h3 className="left-side-title-input left-side-content-wrapper">{currentMap.name}</h3>
-                                </div>
+        <>
+            <div className="container-fluid overflow-hidden" style={{ position: "fixed", top: "3.9rem", bottom: "1.8rem" }}>
+                <div className="row vh-100 overflow-auto" style={{ maxHeight: "90.3vh", backgroundColor: "lightblue" }}>
+                    <MapsActionMenu />
+                    <div className="scroll-wrapper col d-flex flex-column h-100" style={{ maxHeight: "90vh" }}>
+                        <div className="column" style={{ position: "fixed", top: "3.9rem", bottom: "1.8rem", maxWidth: "90vh" }}>
+                            <div className="col text-center map-title-wrapper">
+                                <h3>{currentMap.name}</h3>
                             </div>
-                            <div className="left-side-content-wrapper">
-                                <div className="actions-menu">
-                                    <div className="container">
-                                        <div className="row">
-                                            <div className="col text-center">
-                                                <button type="button" className="btn btn-light"
-                                                        onClick={handleAddPerson}>Add Person
-                                                </button>
+                            <div style={{width: "200vh", height: "90vh"}}>
+                                <Flow nodesData={nodes} edgesData={edges} setNodes={setNodes} setEdges={setEdges}
+                                      onNodesChange={onNodesChange} onEdgesChange={onEdgesChange} onConnect={onConnect}/>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            {/*<div className="main-container">
+                <div className="side-wrapper">
+                    <div className="side-container">
+                        <div className="left-side-wrapper">
+                            <div className="left-side-container">
+                                <div className="left-side-title-container left-side-title-adjustments">
+                                    <div className="left-side-title-input-container">
+                                        <h3 className="left-side-title-input left-side-content-wrapper">{currentMap.name}</h3>
+                                    </div>
+                                </div>
+                                <div className="left-side-content-wrapper">
+                                    <div className="actions-menu">
+                                        <div className="container">
+                                            <div className="row">
+                                                <div className="col text-center">
+                                                    <button type="button" className="btn btn-light"
+                                                            onClick={handleAddPerson}>Add Person
+                                                    </button>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
-                                </div>
-                                {
-                                    isPersonInCreation && <PersonForm/>
-                                }
+                                    {
+                                        isPersonInCreation && <PersonForm/>
+                                    }
 
+                                </div>
                             </div>
                         </div>
                     </div>
                 </div>
-            </div>
-            <div className="content-wrapper">
-                <div></div>
-                <div className="display-container">
-                    {currentMap?.people?.length === 0 &&
-                        <div className="actions-menu">
-                            <div className="container">
-                                <div className="row">
-                                    <div className="col text-center">
-                                        <button type="button" className="btn btn-light" onClick={handleAddPerson}>Add
-                                            Person
-                                        </button>
+                <div className="content-wrapper">
+                    <div></div>
+                    <div className="display-container">
+                        {currentMap?.people?.length === 0 &&
+                            <div className="actions-menu">
+                                <div className="container">
+                                    <div className="row">
+                                        <div className="col text-center">
+                                            <button type="button" className="btn btn-light" onClick={handleAddPerson}>Add
+                                                Person
+                                            </button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                    }
-                    <div className="scroll-wrapper">
-                        <div style={{width: "200vh", height: "100vh"}}>
-                            <Flow nodesData={nodes} edgesData={edges} setNodes={setNodes} setEdges={setEdges}
-                                  onNodesChange={onNodesChange} onEdgesChange={onEdgesChange} onConnect={onConnect}/>
+                        }
+                        <div className="scroll-wrapper">
+                            <div style={{width: "200vh", height: "100vh"}}>
+                                <Flow nodesData={nodes} edgesData={edges} setNodes={setNodes} setEdges={setEdges}
+                                      onNodesChange={onNodesChange} onEdgesChange={onEdgesChange} onConnect={onConnect}/>
+                            </div>
                         </div>
                     </div>
                 </div>
-            </div>
-        </div>
+            </div>*/}
+        </>
     );
 };

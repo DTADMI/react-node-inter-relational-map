@@ -173,3 +173,22 @@
     transform-origin: center center;
     min-width: 6rem;
 }
+
+.map-title-wrapper {
+    width: 100%;
+    position: fixed;
+    top: 14%;
+    right: 0;
+    bottom: 82%;
+}
+@media only screen and (min-width:576px)  {
+    /* tablet, landscape iPad, lo-res laptops ands desktops */
+
+    .map-title-wrapper {
+        width: 80%;
+        position: fixed;
+        top: 6.6%;
+        right: 0;
+        bottom: 89%;
+    }
+}
