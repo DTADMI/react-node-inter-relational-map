@@ -3,16 +3,16 @@ import {Routes, Route, Navigate} from "react-router-dom";
 import MapCardContext, { IMapCardContextProps } from "./contexts/MapCardContext";
 import AuthContext, { IAuthContextProps } from "./contexts/AuthContext";
 import authService from "./services/AuthService";
-import AuthRoute from "./components/auth/AuthRoute";
-import Signup from "./components/auth/Signup";
-import Home from "./components/content/Home";
-import Login from "./components/auth/Login";
-import {MapDisplay} from "./components/content/MapDisplay";
-import {Navbar} from "./components/nav/Navbar";
+import AuthRoute from "./components/auth/AuthRoute/AuthRoute";
+import Signup from "./components/auth/Signup/Signup";
+import Home from "./components/content/Home/Home";
+import Login from "./components/auth/Login/Login";
+import {MapDisplay} from "./components/content/MapDisplay/MapDisplay";
+import {Navbar} from "./components/nav/Navbar/Navbar";
 import "./App.css";
 import {IMapCardUnserialized} from "./interfaces";
-import {Footer} from "./components/content/Footer";
-import {About} from "./components/content/About";
+import {Footer} from "./components/content/Footer/Footer";
+import {About} from "./components/content/About/About";
 
 
 export interface IAppProps {};

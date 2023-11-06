@@ -1,15 +1,15 @@
 import React, {FormEvent, useCallback, useContext, useEffect, useMemo, useState} from 'react';
 import "./MapDisplay.css";
-import mapCardContext from "../../contexts/MapCardContext";
+import mapCardContext from "../../../contexts/MapCardContext";
 import {useNavigate} from "react-router-dom";
-import Flow from "../flow/Flow";
+import Flow from "../../flow/Flow";
 import qs from "qs";
 import { createBrowserHistory } from "history";
-import MapService from "../../services/MapService";
-import authContext from "../../contexts/AuthContext";
-import {IMapCardSerialized, IMapCardUnserialized, IPersonCard, IRelationCard, IUser} from "../../interfaces";
-import PersonForm from "./PersonForm";
-import PersonService from "../../services/PersonService";
+import MapService from "../../../services/MapService";
+import authContext from "../../../contexts/AuthContext";
+import {IMapCardSerialized, IMapCardUnserialized, IPersonCard, IRelationCard, IUser} from "../../../interfaces";
+import PersonForm from "../PersonForm/PersonForm";
+import PersonService from "../../../services/PersonService";
 import {
     addEdge,
     applyEdgeChanges,
@@ -19,8 +19,8 @@ import {
     NodeChange,
 } from "reactflow";
 import {Connection, Edge} from "@reactflow/core/dist/esm/types";
-import RelationService from "../../services/RelationService";
-import {serializeMapCardObject, unserializeMapCardObject} from "../../common/functions";
+import RelationService from "../../../services/RelationService";
+import {serializeMapCardObject, unserializeMapCardObject} from "../../../common/functions";
 
 const LOCAL_STORAGE_KEY = "CURRENT_USER";
 

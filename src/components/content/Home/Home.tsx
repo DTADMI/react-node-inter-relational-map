@@ -1,11 +1,12 @@
 import React, {useContext, useEffect, useState} from 'react';
-import authContext from "../../contexts/AuthContext";
-import mapCardContext from "../../contexts/MapCardContext";
+import authContext from "../../../contexts/AuthContext";
+import mapCardContext from "../../../contexts/MapCardContext";
 import "./Home.css"
-import {MapCard} from "./MapCard";
-import {IMapCardUnserialized} from "../../interfaces";
-import MapService from "../../services/MapService";
-import {getRandomIntInclusive} from "../../common/functions";
+import {MapCard} from "../MapCard/MapCard";
+import {IMapCardUnserialized} from "../../../interfaces";
+import MapService from "../../../services/MapService";
+import {getRandomIntInclusive} from "../../../common/functions";
+import {HomeActionMenu} from "../../nav/HomeActionMenu/HomeActionMenu";
 
 const generateNewImgSrc = () => {
     let randomInt = getRandomIntInclusive(1, 10);
@@ -67,7 +68,8 @@ const Home: React.FunctionComponent<IHomeProps> = (props: React.PropsWithChildre
             {
                 !!currentUser.userId &&
                 <div className="display-container">
-                    <div className="actions-menu">
+                    <HomeActionMenu />
+                    {/*<div className="actions-menu">
                         <div className="container">
                             <div className="row">
                                 <div className="col text-center">
@@ -75,7 +77,7 @@ const Home: React.FunctionComponent<IHomeProps> = (props: React.PropsWithChildre
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    </div>*/}
                     <div className="scroll-wrapper">
                         <div className="container">
                             <div id="mapCards" className="row {/*row-cols-1 row-cols-md-3*/}">

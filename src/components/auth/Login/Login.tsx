@@ -1,13 +1,12 @@
 import React, {useContext, useRef} from 'react';
-import authContext from "../../contexts/AuthContext";
-import {Form, Button, Card, Container} from 'react-bootstrap';
+import authContext from "../../../contexts/AuthContext";
+import {Button, Card, Container, Form} from "react-bootstrap";
 import { Link, useNavigate } from "react-router-dom";
 
-const Signup = () => {
+const Login = () => {
     const emailRef = useRef<HTMLInputElement>(null);
     const passwordRef = useRef<HTMLInputElement>(null);
-    const passwordConfirmRef = useRef<HTMLInputElement>(null);
-    const {signUp} = useContext(authContext);
+    const {login} = useContext(authContext);
     const [error, setError] = React.useState('');
     const [loading, setLoading] = React.useState(false);
     const navigate = useNavigate();
@@ -17,19 +16,14 @@ const Signup = () => {
 
         const email = emailRef?.current?.value ?? "";
         const password = passwordRef?.current?.value ?? "";
-        const passwordConfirm = passwordConfirmRef?.current?.value ?? "";
-        if(email && password && passwordConfirm) {
-
-            if (password !== passwordConfirm) {
-                return setError('Passwords do not match');
-            }
+        if(email && password){
             try {
                 setError('');
                 setLoading(true);
-                await signUp(email, password);
+                await login(email, password);
                 navigate("/home");
             } catch (err) {
-                setError("Something went wrong while creating your account. Please try again later");
+                setError("Something went wrong while signing into your account. Please try again later");
             }
         } else {
             setError("Email and password cannot be empty");
@@ -44,7 +38,7 @@ const Signup = () => {
             <div className="w-100" style={{ maxWidth: "400px"}}>
                 <Card>
                     <Card.Body>
-                        <h2 className="text-center mb-4">Sign Up</h2>
+                        <h2 className="text-center mb-4">Log In</h2>
                         {error && <div className="alert alert-danger">{error}</div>}
                         <Form onSubmit={handleSubmit}>
                             <Form.Group controlId="formBasicEmail">
@@ -60,24 +54,17 @@ const Signup = () => {
                                 <Form.Control type="password" placeholder="Password" ref={passwordRef} required  />
                             </Form.Group>
 
-                            <Form.Group controlId="formBasicPasswordConfirm">
-                                <Form.Label>Password Confirmation</Form.Label>
-                                <Form.Control type="password" placeholder="Password" ref={passwordConfirmRef} required  />
-                            </Form.Group>
-
                             <Button disabled={loading} className="w-100 mt-2" variant="primary" type="submit">
-                                Sign Up
+                                Log In
                             </Button>
                         </Form>
                     </Card.Body>
                 </Card>
                 <div className="w-100 text-center mt-4">
-                    <p>Already have an account? <Link to="/login">Login</Link></p>
+                    <p>Don't have an account? <Link to="/signup">SignUp</Link></p>
                 </div>
-
             </div>
         </Container>
     )
 }
-
-export default Signup
+export default Login

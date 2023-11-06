@@ -1,7 +1,7 @@
 import React, {useContext, useEffect, useState} from 'react';
 import { getAuth, onAuthStateChanged } from 'firebase/auth';
 import { useNavigate } from 'react-router-dom';
-import authContext from "../../contexts/AuthContext";
+import authContext from "../../../contexts/AuthContext";
 
 const LOCAL_STORAGE_KEY = "CURRENT_USER";
 

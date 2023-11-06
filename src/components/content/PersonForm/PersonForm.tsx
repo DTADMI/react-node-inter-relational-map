@@ -1,10 +1,10 @@
 import React, {useContext, useState} from 'react'
 import {Card, Container, Form} from "react-bootstrap";
-import mapCardContext from "../../contexts/MapCardContext";
-import PersonService from "../../services/PersonService";
-import {IMapCardSerialized, IPersonCard} from "../../interfaces";
-import MapService from "../../services/MapService";
-import {serializeMapCardObject, unserializeMapCardObject} from "../../common/functions";
+import mapCardContext from "../../../contexts/MapCardContext";
+import PersonService from "../../../services/PersonService";
+import {IMapCardSerialized, IPersonCard} from "../../../interfaces";
+import MapService from "../../../services/MapService";
+import {serializeMapCardObject, unserializeMapCardObject} from "../../../common/functions";
 
 function PersonForm() {
 

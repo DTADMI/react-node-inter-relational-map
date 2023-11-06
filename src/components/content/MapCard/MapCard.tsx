@@ -1,9 +1,9 @@
 import React, {useContext, useEffect, useRef, useState} from 'react';
-import {IMapCardSerialized, IMapCardUnserialized} from "../../interfaces";
-import mapCardContext from "../../contexts/MapCardContext";
-import MapService from "../../services/MapService";
+import {IMapCardSerialized, IMapCardUnserialized} from "../../../interfaces";
+import mapCardContext from "../../../contexts/MapCardContext";
+import MapService from "../../../services/MapService";
 import {useNavigate} from "react-router-dom";
-import {unserializeMapCardObject} from "../../common/functions";
+import {unserializeMapCardObject} from "../../../common/functions";
 
 export interface IMapCardProps extends IMapCardUnserialized {};
 
