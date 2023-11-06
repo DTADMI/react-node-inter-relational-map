@@ -14,6 +14,6 @@ export const BtnAddMap = () => {
     }
 
     return (
-        <button type="button" className="btn btn-dark btn-outline-primary" onClick={handleAddMap} disabled={isCardInCreation}>Add Map</button>
+        <button type="button" className="btn btn-dark btn-outline-primary right-align-absolute" style={{ position: "absolute", top: "0.5rem", right: "5rem" }} onClick={handleAddMap} disabled={isCardInCreation}>Add Map</button>
     );
 };
