@@ -1,15 +1,13 @@
 import React, {useContext, useState} from 'react'
-import {Card, Container, Form} from "react-bootstrap";
+import {Form} from "react-bootstrap";
 import mapCardContext from "../../../contexts/MapCardContext";
 import PersonService from "../../../services/PersonService";
-import {IMapCardSerialized, IPersonCard} from "../../../interfaces";
+import {IMapCard, IPersonCard} from "../../../interfaces";
 import MapService from "../../../services/MapService";
-import {serializeMapCardObject, unserializeMapCardObject} from "../../../common/functions";
 import Modal from "react-bootstrap/Modal";
 import Button from "react-bootstrap/Button";
 
-export interface IPropsPersonForm {
-};
+export interface IPropsPersonForm {}
 const PersonForm: React.FunctionComponent<IPropsPersonForm> = (props: React.PropsWithChildren<IPropsPersonForm>) => {
 
     const {
@@ -41,17 +39,16 @@ const PersonForm: React.FunctionComponent<IPropsPersonForm> = (props: React.Prop
                         return response.json();
                     })
                     .then((personData: IPersonCard)=>{
-                        const mapCard = serializeMapCardObject(currentMap);
                         if (personData.id) {
-                            mapCard.people.push(personData.id);
+                            currentMap.people.push(personData.id);
                         }
 
-                        MapService.updateMapCard(mapCard)
+                        MapService.updateMapCard(currentMap)
                             .then((response) => {
                                 return response.json();
                             })
-                            .then((mapData: IMapCardSerialized) => {
-                                setCurrentMap(unserializeMapCardObject(mapData));
+                            .then((mapData: IMapCard) => {
+                                setCurrentMap(mapData);
                                 setPersonInCreation(false);
                             }).catch((error) => {
                                 console.error(`Error while updating map : ${JSON.stringify(error)}`);

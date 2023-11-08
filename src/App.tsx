@@ -1,4 +1,4 @@
-import React, {useMemo, useState} from "react";
+import React, {CSSProperties, useMemo, useState} from "react";
 import {Routes, Route, Navigate} from "react-router-dom";
 import MapCardContext, { IMapCardContextProps } from "./contexts/MapCardContext";
 import AuthContext, { IAuthContextProps } from "./contexts/AuthContext";
@@ -10,22 +10,34 @@ import Login from "./components/auth/Login/Login";
 import {MapDisplay} from "./components/content/MapDisplay/MapDisplay";
 import {Navbar} from "./components/nav/Navbar/Navbar";
 import "./App.css";
-import {IMapCardUnserialized} from "./interfaces";
+import {IMapCard} from "./interfaces";
 import {Footer} from "./components/content/Footer/Footer";
 import {About} from "./components/content/About/About";
 
 
-export interface IAppProps {};
+export interface IAppProps {}
 
 const App: React.FunctionComponent<IAppProps> = (props) => {
     const [currentUser, setCurrentUser] = useState({userId: ""});
     const signUp = authService.signUpWithFirebaseEmailAndPassword;
     const login = authService.loginWithFirebaseEmailAndPassword;
     const logout = authService.logOutWithFirebase;
-    const [isCardInCreation, setCardInCreation] = useState(false);
-    const [isPersonInCreation, setPersonInCreation] = useState(false);
-    const [mapCards, setMapCards] = useState<Map<string, IMapCardUnserialized>>(new Map<string, IMapCardUnserialized>());
-    const [currentMap, setCurrentMap] = useState<IMapCardUnserialized>({} as IMapCardUnserialized);
+    const [isCardInCreation, setIsCardInCreation] = useState(false);
+    const [isPersonInCreation, setIsPersonInCreation] = useState(false);
+    const [mapCards, setMapCards] = useState<Map<string, IMapCard>>(new Map<string, IMapCard>());
+    const [currentMap, setCurrentMap] = useState<IMapCard>({} as IMapCard);
+    const [loadingCssOverride, setLoadingCssOverride] = useState<CSSProperties>(
+        {
+                    display: "block",
+                    margin: "0 auto",
+                    borderColor: "red",
+                    position: "fixed",
+                    top: "50%",
+                    bottom: "50%",
+                    left: "50%",
+                    right: "50%"
+                }
+    );
 
     const authContextValue: IAuthContextProps = useMemo(() => ({
         currentUser,
@@ -37,14 +49,16 @@ const App: React.FunctionComponent<IAppProps> = (props) => {
 
     const mapCardContextValue: IMapCardContextProps = useMemo(() => ({
         isCardInCreation,
-        setCardInCreation,
+        setCardInCreation: setIsCardInCreation,
         isPersonInCreation,
-        setPersonInCreation,
+        setPersonInCreation: setIsPersonInCreation,
         mapCards,
         setMapCards,
         currentMap,
-        setCurrentMap
-    }), [isCardInCreation, isPersonInCreation, mapCards, currentMap]);
+        setCurrentMap,
+        loadingCssOverride,
+        setLoadingCssOverride
+    }), [isCardInCreation, isPersonInCreation, mapCards, currentMap, loadingCssOverride]);
 
     return (
       <AuthContext.Provider value={authContextValue}>

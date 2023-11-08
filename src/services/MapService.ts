@@ -1,5 +1,5 @@
 import env from "react-dotenv";
-import {IMapCardSerialized} from "../interfaces";
+import {IMapCard} from "../interfaces";
 
 class MapService {
     public async getMapCards () {//http://localhost:7070/api/interrelmap/maps
@@ -30,7 +30,7 @@ class MapService {
         return await fetch(`${env.REACT_APP_API_URL}api/interrelmap/maps/name?name=${name}`);
     }
 
-    public async addMapCard (mapCard: IMapCardSerialized) {//http://localhost:7070/api/interrelmap/maps
+    public async addMapCard (mapCard: IMapCard) {//http://localhost:7070/api/interrelmap/maps
         return await fetch(`${env.REACT_APP_API_URL}api/interrelmap/maps`, {
             method: "POST",
             body: JSON.stringify(mapCard),
@@ -40,7 +40,7 @@ class MapService {
         });
     }
 
-    public async updateMapCard (mapCard: IMapCardSerialized) {//http://localhost:7070/api/interrelmap/maps
+    public async updateMapCard (mapCard: IMapCard) {//http://localhost:7070/api/interrelmap/maps
         return await fetch(`${env.REACT_APP_API_URL}api/interrelmap/maps`,{
             method: "PUT",
             body: JSON.stringify(mapCard),

@@ -1,7 +1,6 @@
 import firebase from "firebase/compat";
-import {Connection, Edge} from "@reactflow/core/dist/esm/types";
-import {addEdge, Node, OnConnect, OnEdgesChange, OnNodesChange, useEdgesState, useNodesState} from "reactflow";
-import {useCallback} from "react";
+import {Edge} from "@reactflow/core/dist/esm/types";
+import {Node, OnConnect, OnEdgesChange, OnNodesChange} from "reactflow";
 
 export interface IUser {
     firebaseUser?: firebase.User,
@@ -47,7 +46,8 @@ export interface IRelationCard {
     personSourceId: string,
     personTargetId: string,
     relationType?: string,
-    description?: string
+    description?: string,
+    mapId: string
 }
 
 export interface INodeData {

@@ -10,6 +10,16 @@ class RelationService {
         return await fetch(`${env.REACT_APP_API_URL}api/interrelmap/relationships/id?id=${id}`);
     }
 
+    public async getRelationshipsInMap (mapId: string) {//http://localhost:7070/api/interrelmap/relationships/mapId
+        return await fetch(`${env.REACT_APP_API_URL}api/interrelmap/relationships/mapId`, {
+            method: "POST",
+            body: JSON.stringify({mapId: mapId}),
+            headers: {
+                "Content-type": "application/json; charset=UTF-8",
+            },
+        });
+    }
+
     public async deleteRelationCard (id: string) {//http://localhost:7070/api/interrelmap/relationships/ktYLFpFkKU8lAcq9Tlnp
         return await fetch(`${env.REACT_APP_API_URL}api/interrelmap/relationships/${id}`,{
             method: "DELETE",

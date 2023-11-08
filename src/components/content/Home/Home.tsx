@@ -1,30 +1,19 @@
-import React, {CSSProperties, useContext, useEffect, useState} from 'react';
+import React, {useContext, useEffect, useState} from 'react';
 import authContext from "../../../contexts/AuthContext";
 import mapCardContext from "../../../contexts/MapCardContext";
 import "./Home.css"
 import {MapCard} from "../MapCard/MapCard";
-import {IMapCardUnserialized} from "../../../interfaces";
+import {IMapCard} from "../../../interfaces";
 import MapService from "../../../services/MapService";
 import {getRandomIntInclusive} from "../../../common/functions";
 import {HomeActionMenu} from "../../nav/HomeActionMenu/HomeActionMenu";
 import {PacmanLoader} from "react-spinners";
-import {calculateRgba} from "react-spinners/helpers/colors";
+import {signal} from "@preact/signals-react";
 
 const generateNewImgSrc = () => {
     let randomInt = getRandomIntInclusive(1, 10);
     return "/images/picsum"+randomInt+"_582-180x100.jpg";
 }
-
-const override: CSSProperties = {
-    display: "block",
-    margin: "0 auto",
-    borderColor: "red",
-    position: "fixed",
-    top: "50%",
-    bottom: "50%",
-    left: "50%",
-    right: "50%"
-};
 
 export interface IHomeProps {}
 const Home: React.FunctionComponent<IHomeProps> = (props: React.PropsWithChildren<IHomeProps>) => {
@@ -35,20 +24,20 @@ const Home: React.FunctionComponent<IHomeProps> = (props: React.PropsWithChildre
         isCardInCreation,
         mapCards,
         setMapCards,
-        setCurrentMap
+        setCurrentMap,
+        loadingCssOverride
     } = useContext(mapCardContext);
-    const [newImgSrc, setNewImgSrc] = useState(generateNewImgSrc());
+    const newImgSrc = signal(generateNewImgSrc());
 
     let [loading, setLoading] = useState(true);
-    let [color, setColor] = useState("#ffffff");
 
     const getMapCards = (userId: string) => {
         return MapService.getOwnedMapCards(userId)
             .then((response)=>{
                 return response.json();
             })
-            .then((data: IMapCardUnserialized[])=>{
-                let newMapOfCards = new Map<string, IMapCardUnserialized>();
+            .then((data: IMapCard[])=>{
+                let newMapOfCards = new Map<string, IMapCard>();
                 data.forEach((card)=>{
                     if(!card.imgSrc) {
                         card.imgSrc = generateNewImgSrc();
@@ -59,7 +48,7 @@ const Home: React.FunctionComponent<IHomeProps> = (props: React.PropsWithChildre
             })
             .catch((error) => {
                 console.error(`Error while getting owned maps : ${JSON.stringify(error)}`);
-                return new Map<string, IMapCardUnserialized>();
+                return new Map<string, IMapCard>();
         });
     }
 
@@ -72,7 +61,7 @@ const Home: React.FunctionComponent<IHomeProps> = (props: React.PropsWithChildre
                 setLoading(false);
             });
         }
-        setCurrentMap({} as IMapCardUnserialized);
+        setCurrentMap({} as IMapCard);
     }, [currentUser, isCardInCreation]);
 
     return (
@@ -85,7 +74,7 @@ const Home: React.FunctionComponent<IHomeProps> = (props: React.PropsWithChildre
                             <PacmanLoader
                                 color="#6430d1"
                                 loading={loading}
-                                cssOverride={override}
+                                cssOverride={loadingCssOverride}
                                 size={150}
                                 aria-label="Loading Spinner"
                                 data-testid="loader"
@@ -107,12 +96,11 @@ const Home: React.FunctionComponent<IHomeProps> = (props: React.PropsWithChildre
                                             {Array.from(mapCards.values()).map((card) => (
                                                 <MapCard owner={currentUser.userId} id={card.id} name={card.name}
                                                          description={card.description} key={card.name} imgSrc={card.imgSrc}
-                                                         people={card.people} relationships={card.relationships}/>
+                                                         people={card.people}/>
                                             ))}
                                             {isCardInCreation &&
                                                 <MapCard owner={currentUser.userId} name="" description=""
-                                                         imgSrc={newImgSrc} people={[] as string[]}
-                                                         relationships={new Set<string>()}/>
+                                                         imgSrc={newImgSrc.value} people={[] as string[]}/>
                                             }
                                         </div>
                                     </div>

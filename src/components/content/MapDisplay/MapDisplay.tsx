@@ -7,7 +7,12 @@ import qs from "qs";
 import { createBrowserHistory } from "history";
 import MapService from "../../../services/MapService";
 import authContext from "../../../contexts/AuthContext";
-import {IMapCardSerialized, IMapCardUnserialized, IPersonCard, IRelationCard, IUser} from "../../../interfaces";
+import {
+    IMapCard,
+    IPersonCard,
+    IRelationCard,
+    IUser
+} from "../../../interfaces";
 import PersonService from "../../../services/PersonService";
 import {
     addEdge,
@@ -19,8 +24,8 @@ import {
 } from "reactflow";
 import {Connection, Edge} from "@reactflow/core/dist/esm/types";
 import RelationService from "../../../services/RelationService";
-import {serializeMapCardObject, unserializeMapCardObject} from "../../../common/functions";
 import {MapsActionMenu} from "../../nav/MapsActionMenu/MapsActionMenu";
+import {PacmanLoader} from "react-spinners";
 
 const LOCAL_STORAGE_KEY = "CURRENT_USER";
 
@@ -35,55 +40,13 @@ export const MapDisplay = () => {
         currentMap,
         setCurrentMap,
         isPersonInCreation,
-        setPersonInCreation
+        loadingCssOverride
     } = useContext(mapCardContext);
 
-    const getCurrentUser = () => {
-        if(!currentUser.userId) {
-            const localUser = localStorage.getItem(LOCAL_STORAGE_KEY);
-            if (localUser) {
-                return JSON.parse(localUser) as IUser;
-            }
-        }
-        return currentUser;
-    }
-
-    const getMapById = (mapId: string) => {
-        return MapService.getMapCardById(mapId)
-            .then((response) => {
-                return response.json();
-            })
-            .then((dataMap: IMapCardSerialized) => {
-                return unserializeMapCardObject(dataMap);
-            })
-            .catch((error)=>{
-                console.error(`Error while getting map id id: ${JSON.stringify(error)}`);
-                return {} as IMapCardUnserialized;
-            })
-    }
-
-    const getCurrentMap = (callback: (map: IMapCardUnserialized) => void) => {
-        if(!currentMap.id) {
-            const filterParams = history.location.search.substring(1);
-            const filtersFromParams = qs.parse(filterParams);
-            if (filtersFromParams.mapId) {
-                getMapById(filtersFromParams.mapId as string)
-                    .then((data) => {
-                        callback(data);
-                    })
-            } else {
-                alert("No map is currently selected. Create a map and edit it, or select an existing one.");
-                callback({} as IMapCardUnserialized);
-            }
-
-        } else {
-            callback(currentMap);
-        }
-
-
-    }
-
+    const [isMapDataFetching, setIsMapDataFetching] = useState(true);
     const [isPageLoading, setIsPageLoading] = useState(true);
+
+    const [currentMapRelationships, setCurrentMapRelationships] = useState(new Set<string>());
 
     const [nodes, setNodes] = useState([] as Node[]);
     const [edges, setEdges] = useState([] as Edge[]);
@@ -100,57 +63,6 @@ export const MapDisplay = () => {
 
     const onConnect = useCallback((params: Edge | Connection) => setEdges((eds: Edge[]) => addEdge(params, eds)), []);
 
-    const navigate = useNavigate();
-    const history = createBrowserHistory();
-    const createEdges = (dataMap: IMapCardUnserialized) => {
-        let newEdges = [] as Edge[];
-        Array.from(dataMap.relationships).forEach((relationId: string, idx, arr) => {
-            RelationService.getRelationCardById(relationId)
-                .then((response) => {
-                    return response.json();
-                })
-                .then((relationData: IRelationCard) => {
-                    const newEdge = {
-                        id: relationData.id,
-                        source: relationData.personSourceId,
-                        target: relationData.personTargetId,
-                        type: relationData.relationType ?? ""
-                    } as Edge;
-                    newEdges.push(newEdge);
-                    if(idx === arr.length-1){
-                        setEdges(newEdges);
-                    }
-                }).catch((error) => {
-                console.error(`Error while getting relationships : ${JSON.stringify(error)}`);
-            });
-        });
-    }
-    const createNodes = (dataMap : IMapCardUnserialized) => {
-        let newNodes = [] as Node[];
-        dataMap.people.forEach((personId: string, idx, arr) => {
-            PersonService.getPersonCardById(personId)
-                .then((response) => {
-                    return response.json();
-                })
-                .then((personData: IPersonCard) => {
-                    const newNode = {
-                        id: personData.id,
-                        data: { label : personData.names?.length>0 ? personData.names.join(',') : personData.id },
-                        position: {
-                            x: (idx % 2 === 0) ? (startingXPosition + (idx * moveRadiusX)) : (startingXPosition + (idx * moveRadiusX + moveRadiusX)),
-                            y: (startingYPosition + (idx * moveRadiusY + moveRadiusY))
-                        },
-                        type: idx === 0 ? "input" : ""
-                    } as Node;
-                    newNodes.push(newNode);
-                    if(idx === arr.length-1){
-                        setNodes(newNodes);
-                    }
-                }).catch((error) => {
-                console.error(`Error while getting people : ${JSON.stringify(error)}`);
-            });
-        });
-    }
 
     const startingXPosition = 550;
     const startingYPosition = 50;
@@ -165,174 +77,288 @@ export const MapDisplay = () => {
         () => (currentMap),
         [currentMap]
     );
+    const memoCurrentMapRelationships = useMemo(
+        () => (currentMapRelationships),
+        [currentMapRelationships]
+    );
+    const navigate = useNavigate();
+    const history = createBrowserHistory();
 
-    useEffect(() => {
-        if(!isPageLoading && !memoCurrentMap.name){
+    const handleNoMapError = useCallback(
+        () => {
             alert("No map is currently selected. Create a map and edit it, or select an existing one.");
             navigate("/home");
+        },
+        [navigate],
+    );
+
+    const getCurrentUser = () => {
+        if(!currentUser.userId) {
+            const localUser = localStorage.getItem(LOCAL_STORAGE_KEY);
+            if (localUser) {
+                return JSON.parse(localUser) as IUser;
+            }
+        }
+        return currentUser;
+    }
+
+    const getMapById = (mapId: string) => {
+        return MapService.getMapCardById(mapId)
+            .then((response) => {
+                return response.json();
+            })
+            .then((dataMap: IMapCard) => {
+                return dataMap;
+            })
+            .catch((error)=>{
+                console.error(`Error while getting map by id: ${JSON.stringify(error)}`);
+                return {} as IMapCard;
+            })
+    }
+
+    const getRelationshipsByMapId = (mapId: string) => {
+        return RelationService.getRelationshipsInMap(mapId)
+            .then((response) => {
+                return response.json();
+            })
+            .then((relationships: IRelationCard[]) => {
+                return relationships;
+            })
+            .catch((error)=>{
+                console.error(`Error while getting relationships by mapId: ${JSON.stringify(error)}`);
+                return [] as IRelationCard[];
+            })
+    }
+
+    const setCurrentRelationshipsFromMap = (dataMap: IMapCard, callback: (map: IMapCard) => void) => {
+        if(dataMap.id){
+            const mapId = dataMap.id;
+            getRelationshipsByMapId(mapId)
+                .then((relationships: IRelationCard[])=>{
+                    setCurrentMapRelationships(new Set<string>(relationships.map(relationship => relationship.id ?? [relationship.personSourceId, relationship.personTargetId].join(':'))));
+                    callback(dataMap);
+                });
+        }
+    }
+
+    const getCurrentMapData = (callback: (map: IMapCard) => void) => {
+        if(!currentMap.id) {
+            const filterParams = history.location.search.substring(1);
+            const filtersFromParams = qs.parse(filterParams);
+            if (filtersFromParams.mapId) {
+                getMapById(filtersFromParams.mapId as string)
+                    .then((dataMap) => {
+                        if(dataMap?.id) {
+                            setCurrentRelationshipsFromMap(dataMap, callback);
+                        } else {
+                            handleNoMapError();
+                        }
+                    })
+            } else {
+                handleNoMapError();
+            }
+        } else {
+            setCurrentRelationshipsFromMap(currentMap, callback);
+        }
+
+
+    }
+
+    const createEdges = () => {
+        if( Array.from(memoCurrentMapRelationships).length > 0) {
+            //let newEdges = [] as Edge[];
+            const edgesCreatePromises = Array.from(memoCurrentMapRelationships)
+                .filter((relationship)=>relationship.includes(':') && currentMap.people.includes(relationship.split(':')[0]) && currentMap.people.includes(relationship.split(':')[1]))
+                .map((relationId: string) => {
+                    return RelationService.getRelationCardById(relationId)
+                        .then((response) => {
+                            return response.json();
+                        })
+                        .then((relationData: IRelationCard) => {
+                            return {
+                                id: relationData.id,
+                                source: relationData.personSourceId,
+                                target: relationData.personTargetId,
+                                type: relationData.relationType ?? ""
+                            } as Edge;
+                        })
+                        .catch((error) => {
+                            console.error(`Error while getting relationships : ${JSON.stringify(error)}`);
+                            throw new Error(`Error while getting relationships : ${JSON.stringify(error)}`);
+                        });
+                });
+            Promise.all(edgesCreatePromises)
+                .then((newEdges) => {
+                    if(newEdges){
+                        setEdges(newEdges);
+                    }
+                })
+                .catch((error) => {
+                    console.error(`Error while getting relationships : ${JSON.stringify(error)}`);
+                    throw new Error(`Error while getting relationships : ${JSON.stringify(error)}`);
+                });
+        }
+    }
+    const createNodes = () => {
+        //let newNodes = [] as Node[];
+        const nodesCreatePromises = currentMap.people.map((personId: string, idx) => {
+            return PersonService.getPersonCardById(personId)
+                .then((response) => {
+                    return response.json();
+                })
+                .then((personData: IPersonCard) => {
+                    return {
+                        id: personData.id,
+                        data: { label : personData.names?.length>0 ? personData.names.join(', ') : personData.id },
+                        position: {
+                            x: (idx % 2 === 0) ? (startingXPosition + (idx * moveRadiusX)) : (startingXPosition + (idx * moveRadiusX + moveRadiusX)),
+                            y: (startingYPosition + (idx * moveRadiusY + moveRadiusY))
+                        },
+                        type: idx === 0 ? "input" : ""
+                    } as Node;
+                })
+                .catch((error) => {
+                    console.error(`Error while getting people : ${JSON.stringify(error)}`);
+                    throw new Error(`Error while getting people : ${JSON.stringify(error)}`);
+                });
+        });
+        Promise.all(nodesCreatePromises)
+            .then((newNodes) => {
+                if(newNodes){
+                    setNodes(newNodes);
+                    if(!Array.from(memoCurrentMapRelationships).length) {
+                        setIsPageLoading(false);
+                    }
+                }
+            })
+            .catch((error) => {
+                console.error(`Error while getting people : ${JSON.stringify(error)}`);
+                throw new Error(`Error while getting people : ${JSON.stringify(error)}`);
+            });
+    }
+
+    useEffect(() => {
+        if(!isMapDataFetching && !memoCurrentMap.name){
+            handleNoMapError();
         }
     }, []);
 
     useEffect(() => {
-
-        if(isPageLoading) {
+        if(isMapDataFetching) {
             setCurrentUser(getCurrentUser());
-            const callback = (map: IMapCardUnserialized) => {
+            const setCurrentMapData = (map: IMapCard) => {
                 if(Object.keys(map).length){
                     setCurrentMap(map);
-                    setIsPageLoading(false);
+                    setIsMapDataFetching(false);
                 } else {
-                    alert("No map is currently selected. Create a map and edit it, or select an existing one.");
-                    setIsPageLoading(false);
-                    navigate("/home");
+                    setIsMapDataFetching(false);
+                    handleNoMapError();
                 }
             }
-            getCurrentMap(callback);
+            getCurrentMapData(setCurrentMapData);
 
             if(!Object.keys(currentUser).length) {
                 alert("User disconnected");
-                setIsPageLoading(false);
+                setIsMapDataFetching(false);
                 navigate("/home");
             }
-
         }
     }, []);
 
     useEffect(() => {
-        if(isPageLoading && Object.keys(memoCurrentMap).length){
+        if(isMapDataFetching && Object.keys(memoCurrentMap).length){
             history.push(`?mapId=${memoCurrentMap.id}`);
         }
-    }, [memoCurrentMap, isPageLoading]);
+    }, [memoCurrentMap, isMapDataFetching]);
 
     useEffect(() => {
-        if(isPageLoading && memoCurrentMap.name){
-            if(memoCurrentMap?.relationships?.size > 0){
-                createEdges(currentMap);
-            }
-        }
-    }, [isPageLoading, memoCurrentMap]);
-
-    useEffect(() => {
-        if((isPageLoading || !isPersonInCreation) && memoCurrentMap.name){
+        if((isMapDataFetching || !isPersonInCreation) && memoCurrentMap.name){
             if(memoCurrentMap?.people?.length > 0){
-                createNodes(currentMap);
+                createNodes();
             }
         }
-    }, [isPageLoading, isPersonInCreation]);
+    }, [isMapDataFetching, isPersonInCreation, memoCurrentMapRelationships.size]);
+
+    useEffect(() => {
+        if(isMapDataFetching && memoCurrentMap.name){
+            createEdges();
+        }
+    }, [isMapDataFetching, memoCurrentMap, memoCurrentMapRelationships]);
 
 
     useEffect(() => {
-        if(!isPageLoading && memoEdges?.length >0) {
-            const newRelations = new Set(memoEdges.map((ed) => {
-                return [ed.source, ed.target].join(":");
-            }));
-            const newRelCards = new Set(memoEdges.map((ed) => {
-                return {
-                    personSourceId: ed.source,
-                    personTargetId: ed.target
-                } as IRelationCard;
-            }));
-            Array.from(newRelCards).filter((relCard)=> {
-                return (currentMap?.relationships && !currentMap.relationships.has([relCard.personSourceId, relCard.personTargetId].join(":"))) || false;
-            }).forEach((relCard: IRelationCard)=>{
-                RelationService.addRelationCard(relCard)
-                    .then((response)=>{
-                        return response.json();
-                    }).then((relation: IRelationCard)=>{
-                    console.log(`Relationship created : ${JSON.stringify(relation)}`);
-                }).catch((error) => {
-                    console.error(`Error while creating relationships : ${JSON.stringify(error)}`);
+        if(!isMapDataFetching) {
+            if(memoEdges?.length >0) {
+                const newRelCards = new Set(memoEdges.map((ed) => {
+                    return {
+                        personSourceId: ed.source,
+                        personTargetId: ed.target,
+                        mapId: currentMap.id
+                    } as IRelationCard;
+                }));
+                const relationsCreatePromise = Array.from(newRelCards).filter((relCard)=> {
+                    return (memoCurrentMapRelationships && !memoCurrentMapRelationships.has([relCard.personSourceId, relCard.personTargetId].join(":"))) || false;
+                }).map((relCard: IRelationCard)=>{
+                    return RelationService.addRelationCard(relCard)
+                        .then((response)=>{
+                            return response.json();
+                        })
+                        .then((relation: IRelationCard)=>{
+                            return relation;
+                    }).catch((error) => {
+                        console.error(`Error while creating relationships : ${JSON.stringify(error)}`);
+                        throw new Error(`Error while creating relationships : ${JSON.stringify(error)}`);
+                    });
                 });
-            });
-
-            const serializedMapCard = serializeMapCardObject(memoCurrentMap, newRelations);//{...baseCard, relationships: Array.from(newRelations)} as IMapCardSerialized; // Replaces the previous set of relationships instead of checking what previously existed and updating them
-
-            MapService.updateMapCard(serializedMapCard)
-                .then((response)=>{
-                    return response.json();
-                })
-                .then((mapData: IMapCardSerialized) => {
-                    console.log(`map updated to ${JSON.stringify(mapData)}`);
-                });
-            const unserializedMapCard = unserializeMapCardObject(serializedMapCard)//{...baseCard, relationships: new Set(relationships)};
-            setCurrentMap(unserializedMapCard);
+                Promise.all(relationsCreatePromise)
+                    .then((newRelations) => {
+                        if(newRelations.length){
+                            newRelations.forEach((relation)=>setCurrentMapRelationships((relations) => {
+                                relations.add(relation.id ?? [relation.personSourceId, relation.personTargetId].join(':'));
+                                return relations;
+                            }));
+                        }
+                        if(isPageLoading){
+                            setIsPageLoading(false);
+                        }
+                    })
+                    .catch((error) => {
+                        console.error(`Error while creating relationships : ${JSON.stringify(error)}`);
+                        throw new Error(`Error while creating relationships : ${JSON.stringify(error)}`);
+                    });
+            }
         }
-    }, [isPageLoading, memoEdges]);
+    }, [isMapDataFetching, memoEdges]);
 
     return (
         <>
-            <div className="container-fluid overflow-hidden" style={{ position: "fixed", top: "3.9rem", bottom: "1.8rem" }}>
-                <div className="row vh-100 overflow-auto" style={{ maxHeight: "90.3vh", backgroundColor: "lightblue" }}>
-                    <MapsActionMenu />
-                    <div className="scroll-wrapper col d-flex flex-column h-100" style={{ maxHeight: "90vh" }}>
-                        <div className="column" style={{ position: "fixed", top: "3.9rem", bottom: "1.8rem", maxWidth: "90vh" }}>
-                            <div className="col text-center map-title-wrapper">
-                                <h3>{currentMap.name}</h3>
-                            </div>
-                            <div style={{width: "200vh", height: "90vh"}}>
-                                <Flow nodesData={nodes} edgesData={edges} setNodes={setNodes} setEdges={setEdges}
-                                      onNodesChange={onNodesChange} onEdgesChange={onEdgesChange} onConnect={onConnect}/>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            {/*<div className="main-container">
-                <div className="side-wrapper">
-                    <div className="side-container">
-                        <div className="left-side-wrapper">
-                            <div className="left-side-container">
-                                <div className="left-side-title-container left-side-title-adjustments">
-                                    <div className="left-side-title-input-container">
-                                        <h3 className="left-side-title-input left-side-content-wrapper">{currentMap.name}</h3>
+            {
+                isPageLoading ?
+                    <PacmanLoader
+                        color="#6430d1"
+                        loading={isPageLoading}
+                        cssOverride={loadingCssOverride}
+                        size={150}
+                        aria-label="Loading Spinner"
+                        data-testid="loader"
+                    /> :
+                    <div className="container-fluid overflow-hidden" style={{ position: "fixed", top: "3.9rem", bottom: "1.8rem" }}>
+                        <div className="row vh-100 overflow-auto" style={{ maxHeight: "90.3vh", backgroundColor: "lightblue" }}>
+                            <MapsActionMenu />
+                            <div className="scroll-wrapper col d-flex flex-column h-100" style={{ maxHeight: "90vh" }}>
+                                <div className="column" style={{ position: "fixed", top: "3.9rem", bottom: "1.8rem", maxWidth: "90vh" }}>
+                                    <div className="col text-center map-title-wrapper">
+                                        <h3>{currentMap.name}</h3>
                                     </div>
-                                </div>
-                                <div className="left-side-content-wrapper">
-                                    <div className="actions-menu">
-                                        <div className="container">
-                                            <div className="row">
-                                                <div className="col text-center">
-                                                    <button type="button" className="btn btn-light"
-                                                            onClick={handleAddPerson}>Add Person
-                                                    </button>
-                                                </div>
-                                            </div>
-                                        </div>
+                                    <div style={{width: "200vh", height: "90vh"}}>
+                                        <Flow nodesData={nodes} edgesData={edges} setNodes={setNodes} setEdges={setEdges}
+                                              onNodesChange={onNodesChange} onEdgesChange={onEdgesChange} onConnect={onConnect}/>
                                     </div>
-                                    {
-                                        isPersonInCreation && <PersonForm/>
-                                    }
-
                                 </div>
                             </div>
                         </div>
                     </div>
-                </div>
-                <div className="content-wrapper">
-                    <div></div>
-                    <div className="display-container">
-                        {currentMap?.people?.length === 0 &&
-                            <div className="actions-menu">
-                                <div className="container">
-                                    <div className="row">
-                                        <div className="col text-center">
-                                            <button type="button" className="btn btn-light" onClick={handleAddPerson}>Add
-                                                Person
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        }
-                        <div className="scroll-wrapper">
-                            <div style={{width: "200vh", height: "100vh"}}>
-                                <Flow nodesData={nodes} edgesData={edges} setNodes={setNodes} setEdges={setEdges}
-                                      onNodesChange={onNodesChange} onEdgesChange={onEdgesChange} onConnect={onConnect}/>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>*/}
+            }
         </>
     );
 };

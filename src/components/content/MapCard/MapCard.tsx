@@ -1,11 +1,10 @@
 import React, {useContext, useEffect, useRef, useState} from 'react';
-import {IMapCardSerialized, IMapCardUnserialized} from "../../../interfaces";
+import {IMapCard} from "../../../interfaces";
 import mapCardContext from "../../../contexts/MapCardContext";
 import MapService from "../../../services/MapService";
 import {useNavigate} from "react-router-dom";
-import {unserializeMapCardObject} from "../../../common/functions";
 
-export interface IMapCardProps extends IMapCardUnserialized {};
+export interface IMapCardProps extends IMapCard {}
 
 export const MapCard = (props: React.PropsWithChildren<IMapCardProps>) => {
     const nameRef = useRef<HTMLInputElement>(null);
@@ -16,7 +15,6 @@ export const MapCard = (props: React.PropsWithChildren<IMapCardProps>) => {
     const owner = props.owner;
     const people = props.people;
     const imgSrc = props.imgSrc;
-    const relationships = props.relationships;
     let isCreated = name !== "";
 
     const {
@@ -25,7 +23,7 @@ export const MapCard = (props: React.PropsWithChildren<IMapCardProps>) => {
         setMapCards,
         setCurrentMap
     } = useContext(mapCardContext);
-    const [isCreateBtnDisabled, setCreateBtnDisabled] = useState(true);
+    const [isCreateBtnDisabled, setIsCreateBtnDisabled] = useState(true);
     const navigate = useNavigate();
 
     const handleCreateMapCard = () => {
@@ -36,13 +34,11 @@ export const MapCard = (props: React.PropsWithChildren<IMapCardProps>) => {
                 let newMapCards = new Map(Array.from(mapCards));
                 name = nameInput;
                 description = descriptionRef?.current?.value ?? "";
-                const serializedRelationships = Array.from(relationships);
-                MapService.addMapCard({owner, name, description, people, imgSrc, relationships: serializedRelationships} as IMapCardSerialized)
+                MapService.addMapCard({owner, name, description, people, imgSrc} as IMapCard)
                     .then((response)=>{
                     return response.json();
-                }).then((mapCard: IMapCardSerialized)=>{
-                    const unserializedMapCard = unserializeMapCardObject(mapCard);
-                    newMapCards.set(nameInput, unserializedMapCard);
+                }).then((mapCard: IMapCard)=>{
+                    newMapCards.set(nameInput, mapCard);
                     setMapCards(newMapCards);
                     isCreated = true;
                     setCardInCreation(false);
@@ -62,7 +58,7 @@ export const MapCard = (props: React.PropsWithChildren<IMapCardProps>) => {
 
     const handleMapNameChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         setError("");
-        setCreateBtnDisabled(event.target.value==="");
+        setIsCreateBtnDisabled(event.target.value==="");
     }
     const handleEditMapCard = () => {
         let mapCard = mapCards.get(name);
