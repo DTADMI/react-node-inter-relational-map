@@ -13,7 +13,7 @@ export const MapCard = (props: React.PropsWithChildren<IMapCardProps>) => {
     let name = props.name;
     let description = props.description;
     const owner = props.owner;
-    const people = props.people;
+    const people = props.people ?? [] as string[];
     const imgSrc = props.imgSrc;
     let isCreated = name !== "";
 
@@ -34,7 +34,7 @@ export const MapCard = (props: React.PropsWithChildren<IMapCardProps>) => {
                 let newMapCards = new Map(Array.from(mapCards));
                 name = nameInput;
                 description = descriptionRef?.current?.value ?? "";
-                MapService.addMapCard({owner, name, description, people, imgSrc} as IMapCard)
+                MapService.addMapCard({owner, name, description, people, imgSrc, lastModificationDate: new Date().toUTCString()} as IMapCard)
                     .then((response)=>{
                     return response.json();
                 }).then((mapCard: IMapCard)=>{
@@ -63,6 +63,15 @@ export const MapCard = (props: React.PropsWithChildren<IMapCardProps>) => {
     const handleEditMapCard = () => {
         let mapCard = mapCards.get(name);
         if(mapCard) {
+            console.log(`fetched map : ${mapCard}`);
+            mapCard.lastModificationDate = new Date().toUTCString();
+            MapService.updateMapCard(mapCard)
+                .then((response)=>{
+                    return response.json();
+                })
+                .then((updatedMap: IMapCard) => {
+                    console.log(`Updated map ${updatedMap}`);
+                });
             setCurrentMap(mapCard);
             navigate("/maps");
         }

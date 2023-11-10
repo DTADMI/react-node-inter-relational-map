@@ -13,7 +13,8 @@ export interface IMapCard {
     description?: string,
     people: Array<string>,
     imgSrc?: string,
-    owner: string
+    owner: string,
+    lastModificationDate?: string
 }
 
 export interface IMapCardSerialized extends IMapCard {

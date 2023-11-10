@@ -8,7 +8,7 @@ import Signup from "./components/auth/Signup/Signup";
 import Home from "./components/content/Home/Home";
 import Login from "./components/auth/Login/Login";
 import {MapDisplay} from "./components/content/MapDisplay/MapDisplay";
-import {Navbar} from "./components/nav/Navbar/Navbar";
+import {Navbar} from "./components/navigation/Navbar/Navbar";
 import "./App.css";
 import {IMapCard} from "./interfaces";
 import {Footer} from "./components/content/Footer/Footer";

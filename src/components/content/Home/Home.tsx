@@ -6,9 +6,12 @@ import {MapCard} from "../MapCard/MapCard";
 import {IMapCard} from "../../../interfaces";
 import MapService from "../../../services/MapService";
 import {getRandomIntInclusive} from "../../../common/functions";
-import {HomeActionMenu} from "../../nav/HomeActionMenu/HomeActionMenu";
+import {HomeActionMenu} from "../../navigation/HomeActionMenu/HomeActionMenu";
 import {PacmanLoader} from "react-spinners";
 import {signal} from "@preact/signals-react";
+import {Pagination} from "../../navigation/Pagination/Pagination";
+import {createBrowserHistory} from "history";
+import qs from "qs";
 
 const generateNewImgSrc = () => {
     let randomInt = getRandomIntInclusive(1, 10);
@@ -29,7 +32,24 @@ const Home: React.FunctionComponent<IHomeProps> = (props: React.PropsWithChildre
     } = useContext(mapCardContext);
     const newImgSrc = signal(generateNewImgSrc());
 
-    let [loading, setLoading] = useState(true);
+    const [loading, setLoading] = useState(true);
+    const [pageCount, setPageCount] = useState(0);
+    const [pageOffset, setPageOffset] = useState(1);
+    const mapsPerPage = 3;
+    const [displayedMaps, setDisplayedMaps] = useState(new Map<string, IMapCard>());
+    const history = createBrowserHistory();
+
+    const compareMapsEntryByDate = (mapEntry1: [string, IMapCard], mapEntry2: [string, IMapCard]): number => {
+        const map1LastModifTime = mapEntry1[1].lastModificationDate ? new Date(mapEntry1[1].lastModificationDate).getTime() : new Date().getTime();
+        const map2LastModifTime = mapEntry2[1].lastModificationDate ? new Date(mapEntry2[1].lastModificationDate).getTime() : new Date().getTime();
+        if(map1LastModifTime < map2LastModifTime){
+            return 1;
+        } else if(map1LastModifTime > map2LastModifTime){
+            return -1;
+        } else {
+            return 0;
+        }
+    }
 
     const getMapCards = (userId: string) => {
         return MapService.getOwnedMapCards(userId)
@@ -42,9 +62,12 @@ const Home: React.FunctionComponent<IHomeProps> = (props: React.PropsWithChildre
                     if(!card.imgSrc) {
                         card.imgSrc = generateNewImgSrc();
                     }
+                    if(!card.lastModificationDate){
+                        card.lastModificationDate = new Date().toUTCString();
+                    }
                     newMapOfCards.set(card.name, card);
                 });
-                return newMapOfCards;
+                return new Map(Array.from(newMapOfCards).sort(compareMapsEntryByDate));
             })
             .catch((error) => {
                 console.error(`Error while getting owned maps : ${JSON.stringify(error)}`);
@@ -57,12 +80,45 @@ const Home: React.FunctionComponent<IHomeProps> = (props: React.PropsWithChildre
         if(userId) {
             setLoading(true);
             getMapCards(userId).then((maps) => {
+                console.table(maps);
                 setMapCards(maps);
-                setLoading(false);
+                const filterParams = history.location.search.substring(1);
+                const filtersFromParams = qs.parse(filterParams);
+                if (filtersFromParams.page) {
+                    const page = parseInt(filtersFromParams.page as string);
+                    setPageOffset(page);
+                }
+                if(maps.size===0){
+                    setLoading(false);
+                }
             });
         }
         setCurrentMap({} as IMapCard);
     }, [currentUser, isCardInCreation]);
+
+    useEffect(() => {
+        const numberOfCards = mapCards.size;
+        setPageCount(Math.ceil(numberOfCards / mapsPerPage));
+        if(numberOfCards && pageOffset) {
+            const filterParams = history.location.search.substring(1);
+            const filtersFromParams = qs.parse(filterParams);
+            let page = pageOffset;
+            if (!filtersFromParams.page) {
+                history.push(`?page=${pageOffset}`);
+            } else {
+                page = parseInt(filtersFromParams.page as string);
+                page = !isNaN(page) ? page : 0;
+            }
+            const startIndex = (page - 1) * mapsPerPage;
+            const endIndex = (page) * mapsPerPage;
+            let slicedMaps = new Map<string, IMapCard>();
+            Array.from(mapCards.values()).slice(startIndex, endIndex).forEach((map: IMapCard) => {
+                slicedMaps.set(map.name, map);
+            })
+            setDisplayedMaps(slicedMaps);
+            setLoading(false);
+        }
+   }, [pageOffset, mapCards]);
 
     return (
         <>
@@ -81,29 +137,31 @@ const Home: React.FunctionComponent<IHomeProps> = (props: React.PropsWithChildre
                             /> :
                             <div className="display-container">
                                 <HomeActionMenu/>
-                                {/*<div className="actions-menu">
-                            <div className="container">
-                                <div className="row">
-                                    <div className="col text-center">
-                                        <button type="button" className="btn btn-dark" onClick={handleAddMap} disabled={isCardInCreation}>Add Map</button>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>*/}
                                 <div className="scroll-wrapper">
-                                    <div className="container">
-                                        <div id="mapCards" className="row {/*row-cols-1 row-cols-md-3*/}">
-                                            {Array.from(mapCards.values()).map((card) => (
-                                                <MapCard owner={currentUser.userId} id={card.id} name={card.name}
-                                                         description={card.description} key={card.name} imgSrc={card.imgSrc}
-                                                         people={card.people}/>
-                                            ))}
-                                            {isCardInCreation &&
-                                                <MapCard owner={currentUser.userId} name="" description=""
-                                                         imgSrc={newImgSrc.value} people={[] as string[]}/>
+                                    {mapCards.size > 0 &&
+                                        <div className="container">
+                                            <div id="mapCards" className="row {/*row-cols-1 row-cols-md-3*/}">
+                                                {Array.from(displayedMaps.values()).map((card) => (
+                                                    <MapCard owner={currentUser.userId} id={card.id} name={card.name}
+                                                             description={card.description} key={card.name} imgSrc={card.imgSrc}
+                                                             people={card.people}/>
+                                                ))}
+                                                {isCardInCreation &&
+                                                    <MapCard owner={currentUser.userId} name="" description=""
+                                                             imgSrc={newImgSrc.value} people={[] as string[]}/>
+                                                }
+                                            </div>
+                                            {displayedMaps.size > 0 &&
+                                                <Pagination pageCount={pageCount} pageOffset={pageOffset} setPageOffset={setPageOffset} history={history}/>
                                             }
                                         </div>
-                                    </div>
+                                    }
+                                    {mapCards.size === 0 &&
+                                        <div style={{ display: "flex", textAlign:"center", backgroundColor: "gray", color: "darkgray" }}>
+                                            <p>You currently have no map...</p>
+                                            <p>Create one to start working on it.</p>
+                                        </div>
+                                    }
                                 </div>
                             </div>
                     }

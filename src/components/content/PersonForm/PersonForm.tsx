@@ -40,9 +40,13 @@ const PersonForm: React.FunctionComponent<IPropsPersonForm> = (props: React.Prop
                     })
                     .then((personData: IPersonCard)=>{
                         if (personData.id) {
+                            if(!currentMap.people) {
+                                currentMap.people = [] as string[];
+                            }
                             currentMap.people.push(personData.id);
                         }
 
+                        currentMap.lastModificationDate = new Date().toUTCString();
                         MapService.updateMapCard(currentMap)
                             .then((response) => {
                                 return response.json();
@@ -141,7 +145,7 @@ const PersonForm: React.FunctionComponent<IPropsPersonForm> = (props: React.Prop
                 <Form>
                     <div className="input-group" style={{marginBottom: "1rem", paddingLeft: "13%"}}>
                       <span className="input-group-btn">
-                          <button type="button" className="btn btn-danger" style={{height: "-webkit-fill-available"}} onClick={handleRemoveName}>
+                          <button type="button" className="btn btn-danger" style={{height: "-webkit-fill-available"}} disabled={!names.length} onClick={handleRemoveName}>
                             <span className="glyphicon glyphicon-minus">-</span>
                           </button>
                       </span>
@@ -156,7 +160,7 @@ const PersonForm: React.FunctionComponent<IPropsPersonForm> = (props: React.Prop
                             textAlign: "center"
                       }}/>
                       <span className="input-group-btn">
-                          <button type="button" className="btn btn-success" style={{height: "-webkit-fill-available"}} onClick={handleAddName}>
+                          <button type="button" className="btn btn-success" style={{height: "-webkit-fill-available"}} disabled={!namesInput} onClick={handleAddName}>
                               <span className="glyphicon glyphicon-plus">+</span>
                           </button>
                       </span>
@@ -166,7 +170,7 @@ const PersonForm: React.FunctionComponent<IPropsPersonForm> = (props: React.Prop
                     })}</span>}
                     <div className="input-group" style={{marginBottom: "1rem", paddingLeft: "13%"}}>
                       <span className="input-group-btn">
-                          <button type="button" className="btn btn-danger" style={{height: "-webkit-fill-available"}}
+                          <button type="button" className="btn btn-danger" style={{height: "-webkit-fill-available"}} disabled={!familyNames.length}
                                   onClick={handleRemoveFamilyName}>
                             <span className="glyphicon glyphicon-minus">-</span>
                           </button>
@@ -183,7 +187,7 @@ const PersonForm: React.FunctionComponent<IPropsPersonForm> = (props: React.Prop
                                    textAlign: "center"
                                }}/>
                       <span className="input-group-btn">
-                          <button type="button" className="btn btn-success" style={{height: "-webkit-fill-available"}} onClick={handleAddFamilyName}>
+                          <button type="button" className="btn btn-success" style={{height: "-webkit-fill-available"}} disabled={!familyNamesInput} onClick={handleAddFamilyName}>
                               <span className="glyphicon glyphicon-plus">+</span>
                           </button>
                       </span>
@@ -193,7 +197,7 @@ const PersonForm: React.FunctionComponent<IPropsPersonForm> = (props: React.Prop
                     })}</span>}
                     <div className="input-group" style={{marginBottom: "1rem", paddingLeft: "13%"}}>
                       <span className="input-group-btn">
-                          <button type="button" className="btn btn-danger" style={{height: "-webkit-fill-available"}} onClick={handleRemoveTitle}>
+                          <button type="button" className="btn btn-danger" style={{height: "-webkit-fill-available"}} disabled={!titles.length} onClick={handleRemoveTitle}>
                             <span className="glyphicon glyphicon-minus">-</span>
                           </button>
                       </span>
@@ -208,7 +212,7 @@ const PersonForm: React.FunctionComponent<IPropsPersonForm> = (props: React.Prop
                             textAlign: "center"
                       }}/>
                       <span className="input-group-btn">
-                        <button type="button" className="btn btn-success" style={{height: "-webkit-fill-available"}} onClick={handleAddTitle}>
+                        <button type="button" className="btn btn-success" style={{height: "-webkit-fill-available"}} disabled={!titlesInput} onClick={handleAddTitle}>
                           <span className="glyphicon glyphicon-plus">+</span>
                         </button>
                       </span>

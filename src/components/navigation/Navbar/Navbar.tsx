@@ -30,8 +30,8 @@ export const Navbar = () => {
                     </li>
                 </ul>
                 <div className="hanging-right-elt">
-      <Button className="btn  btn-outline-dark" onClick={handleLogout}>Logout</Button>
-    </div>
+                  <Button className="btn  btn-outline-dark" onClick={handleLogout}>Logout</Button>
+                </div>
             </div>
         </nav>
     );

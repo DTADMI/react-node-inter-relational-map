@@ -24,7 +24,7 @@ import {
 } from "reactflow";
 import {Connection, Edge} from "@reactflow/core/dist/esm/types";
 import RelationService from "../../../services/RelationService";
-import {MapsActionMenu} from "../../nav/MapsActionMenu/MapsActionMenu";
+import {MapsActionMenu} from "../../navigation/MapsActionMenu/MapsActionMenu";
 import {PacmanLoader} from "react-spinners";
 
 const LOCAL_STORAGE_KEY = "CURRENT_USER";
@@ -97,6 +97,8 @@ export const MapDisplay = () => {
             const localUser = localStorage.getItem(LOCAL_STORAGE_KEY);
             if (localUser) {
                 return JSON.parse(localUser) as IUser;
+            } else {
+                return {} as IUser;
             }
         }
         return currentUser;
@@ -108,6 +110,15 @@ export const MapDisplay = () => {
                 return response.json();
             })
             .then((dataMap: IMapCard) => {
+                console.log(`fetched map : ${dataMap}`);
+                dataMap.lastModificationDate = new Date().toUTCString();
+                MapService.updateMapCard(dataMap)
+                    .then((response)=>{
+                        return response.json();
+                    })
+                    .then((updatedMap: IMapCard) => {
+                        console.log(`Updated map ${updatedMap}`);
+                    });
                 return dataMap;
             })
             .catch((error)=>{
@@ -245,9 +256,11 @@ export const MapDisplay = () => {
 
     useEffect(() => {
         if(isMapDataFetching) {
-            setCurrentUser(getCurrentUser());
+            const user = getCurrentUser();
+            setCurrentUser(user);
             const setCurrentMapData = (map: IMapCard) => {
                 if(Object.keys(map).length){
+                    map.lastModificationDate = new Date().toUTCString();
                     setCurrentMap(map);
                     setIsMapDataFetching(false);
                 } else {
@@ -257,7 +270,7 @@ export const MapDisplay = () => {
             }
             getCurrentMapData(setCurrentMapData);
 
-            if(!Object.keys(currentUser).length) {
+            if(!Object.keys(user).length) {
                 alert("User disconnected");
                 setIsMapDataFetching(false);
                 navigate("/home");
@@ -275,6 +288,8 @@ export const MapDisplay = () => {
         if((isMapDataFetching || !isPersonInCreation) && memoCurrentMap.name){
             if(memoCurrentMap?.people?.length > 0){
                 createNodes();
+            } else {
+                setIsPageLoading(false);
             }
         }
     }, [isMapDataFetching, isPersonInCreation, memoCurrentMapRelationships.size]);
