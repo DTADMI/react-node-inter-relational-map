@@ -1,4 +1,4 @@
-import React, {useContext, useEffect, useState} from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import authContext from "../../../contexts/AuthContext";
 import mapCardContext from "../../../contexts/MapCardContext";
 import "./Home.css"
@@ -12,6 +12,8 @@ import {signal} from "@preact/signals-react";
 import {Pagination} from "../../navigation/Pagination/Pagination";
 import {createBrowserHistory} from "history";
 import qs from "qs";
+import {AxiosResponse} from "axios";
+import {useQuery} from "@tanstack/react-query";
 
 const generateNewImgSrc = () => {
     let randomInt = getRandomIntInclusive(1, 10);
@@ -38,6 +40,7 @@ const Home: React.FunctionComponent<IHomeProps> = (props: React.PropsWithChildre
     const mapsPerPage = 3;
     const [displayedMaps, setDisplayedMaps] = useState(new Map<string, IMapCard>());
     const history = createBrowserHistory();
+    const [uid, setUid] = useState(currentUser.userId);
 
     const compareMapsEntryByDate = (mapEntry1: [string, IMapCard], mapEntry2: [string, IMapCard]): number => {
         const map1LastModifTime = mapEntry1[1].lastModificationDate ? new Date(mapEntry1[1].lastModificationDate).getTime() : new Date().getTime();
@@ -53,10 +56,8 @@ const Home: React.FunctionComponent<IHomeProps> = (props: React.PropsWithChildre
 
     const getMapCards = (userId: string) => {
         return MapService.getOwnedMapCards(userId)
-            .then((response)=>{
-                return response.json();
-            })
-            .then((data: IMapCard[])=>{
+            .then((response: AxiosResponse)=>{
+                const data: IMapCard[] = response.data;
                 let newMapOfCards = new Map<string, IMapCard>();
                 data.forEach((card)=>{
                     if(!card.imgSrc) {
@@ -74,6 +75,12 @@ const Home: React.FunctionComponent<IHomeProps> = (props: React.PropsWithChildre
                 return new Map<string, IMapCard>();
         });
     }
+
+    const {data: maps, isLoading} = useQuery({
+        queryKey: [ "maps", { uid } ],
+        queryFn: () => getMapCards(uid),
+
+    });
 
     useEffect(() => {
         const userId = currentUser.userId;
@@ -138,7 +145,7 @@ const Home: React.FunctionComponent<IHomeProps> = (props: React.PropsWithChildre
                             <div className="display-container">
                                 <HomeActionMenu/>
                                 <div className="scroll-wrapper">
-                                    {mapCards.size > 0 &&
+                                    {mapCards.size > 0 ?
                                         <div className="container">
                                             <div id="mapCards" className="row {/*row-cols-1 row-cols-md-3*/}">
                                                 {Array.from(displayedMaps.values()).map((card) => (
@@ -155,8 +162,7 @@ const Home: React.FunctionComponent<IHomeProps> = (props: React.PropsWithChildre
                                                 <Pagination pageCount={pageCount} pageOffset={pageOffset} setPageOffset={setPageOffset} history={history}/>
                                             }
                                         </div>
-                                    }
-                                    {mapCards.size === 0 &&
+                                    :
                                         <div style={{ display: "flex", textAlign:"center", backgroundColor: "gray", color: "darkgray" }}>
                                             <p>You currently have no map...</p>
                                             <p>Create one to start working on it.</p>

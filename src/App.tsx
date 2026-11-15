@@ -13,6 +13,7 @@ import "./App.css";
 import {IMapCard} from "./interfaces";
 import {Footer} from "./components/content/Footer/Footer";
 import {About} from "./components/content/About/About";
+import {QueryClient, QueryClientProvider} from "@tanstack/react-query";
 
 
 export interface IAppProps {}
@@ -60,50 +61,54 @@ const App: React.FunctionComponent<IAppProps> = (props) => {
         setLoadingCssOverride
     }), [isCardInCreation, isPersonInCreation, mapCards, currentMap, loadingCssOverride]);
 
+    const queryClient : QueryClient = new QueryClient();
+
     return (
       <AuthContext.Provider value={authContextValue}>
         {!!currentUser.userId && <Navbar />}
         <MapCardContext.Provider value={mapCardContextValue}>
-            <Routes>
-                <Route
-                    path="/"
-                    element={
-                        <AuthRoute>
-                            <Home />
-                        </AuthRoute>
-                    }
-                />
-                <Route
-                    path="/home"
-                    element={
-                        <AuthRoute>
-                            <Home />
-                        </AuthRoute>
-                    }
-                />
-                <Route
-                    path="*"
-                    element={<Navigate to="/" />}
-                />
-                <Route path="/login" element={<Login />} />
-                <Route path="/signup" element={<Signup />} />
-                <Route
-                    path="/maps"
-                    element={
-                        <AuthRoute>
-                            <MapDisplay />
-                        </AuthRoute>
-                    }
-                />
-                <Route
-                    path="/about"
-                    element={
-                        <AuthRoute>
-                            <About />
-                        </AuthRoute>
-                    }
-                />
-            </Routes>
+            <QueryClientProvider client={queryClient}>
+                <Routes>
+                    <Route
+                        path="/"
+                        element={
+                            <AuthRoute>
+                                <Home />
+                            </AuthRoute>
+                        }
+                    />
+                    <Route
+                        path="/home"
+                        element={
+                            <AuthRoute>
+                                <Home />
+                            </AuthRoute>
+                        }
+                    />
+                    <Route
+                        path="*"
+                        element={<Navigate to="/" />}
+                    />
+                    <Route path="/login" element={<Login />} />
+                    <Route path="/signup" element={<Signup />} />
+                    <Route
+                        path="/maps"
+                        element={
+                            <AuthRoute>
+                                <MapDisplay />
+                            </AuthRoute>
+                        }
+                    />
+                    <Route
+                        path="/about"
+                        element={
+                            <AuthRoute>
+                                <About />
+                            </AuthRoute>
+                        }
+                    />
+                </Routes>
+            </QueryClientProvider>
         </MapCardContext.Provider>
         <Footer />
       </AuthContext.Provider>

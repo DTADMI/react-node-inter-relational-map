@@ -3,6 +3,7 @@ import {IMapCard} from "../../../interfaces";
 import mapCardContext from "../../../contexts/MapCardContext";
 import MapService from "../../../services/MapService";
 import {useNavigate} from "react-router-dom";
+import {AxiosResponse} from "axios";
 
 export interface IMapCardProps extends IMapCard {}
 
@@ -35,16 +36,16 @@ export const MapCard = (props: React.PropsWithChildren<IMapCardProps>) => {
                 name = nameInput;
                 description = descriptionRef?.current?.value ?? "";
                 MapService.addMapCard({owner, name, description, people, imgSrc, lastModificationDate: new Date().toUTCString()} as IMapCard)
-                    .then((response)=>{
-                    return response.json();
-                }).then((mapCard: IMapCard)=>{
-                    newMapCards.set(nameInput, mapCard);
-                    setMapCards(newMapCards);
-                    isCreated = true;
-                    setCardInCreation(false);
-                }).catch((error) => {
-                    console.error(`Error while creating map : ${JSON.stringify(error)}`);
-                });
+                    .then((response: AxiosResponse)=>{
+                        const mapCard: IMapCard = response.data;
+                        newMapCards.set(nameInput, mapCard);
+                        setMapCards(newMapCards);
+                        isCreated = true;
+                        setCardInCreation(false);
+                    })
+                    .catch((error) => {
+                        console.error(`Error while creating map : ${JSON.stringify(error)}`);
+                    });
             } else {
                 setError(`Another map was already named "${name}". \n You must provide a unique map name.`)
             }
@@ -66,10 +67,8 @@ export const MapCard = (props: React.PropsWithChildren<IMapCardProps>) => {
             console.log(`fetched map : ${mapCard}`);
             mapCard.lastModificationDate = new Date().toUTCString();
             MapService.updateMapCard(mapCard)
-                .then((response)=>{
-                    return response.json();
-                })
-                .then((updatedMap: IMapCard) => {
+                .then((response: AxiosResponse) => {
+                    const updatedMap: IMapCard = response.data;
                     console.log(`Updated map ${updatedMap}`);
                 });
             setCurrentMap(mapCard);
@@ -96,7 +95,7 @@ export const MapCard = (props: React.PropsWithChildren<IMapCardProps>) => {
             <div className="card">
                 {imgSrc && <img className="card-img-top" src={imgSrc} alt="Card caption"/>}
                 <div className="card-body">
-                    {!isCreated &&
+                    {!isCreated ?
                         <h6 className="card-title">
                             <div className="form-group row">
                                 <div className="col-md-12">
@@ -106,27 +105,32 @@ export const MapCard = (props: React.PropsWithChildren<IMapCardProps>) => {
                                 </div>
                             </div>
                         </h6>
+                    :
+                        <h6 className="card-title">{name}</h6>
                     }
-                    {isCreated && <h6 className="card-title">{name}</h6>}
 
-                    {!isCreated && <div className="card-text mb-3">
-                        <div className="form-group row">
-                            <div className="col-md-12">
-                                <textarea className="form-control" id="mapDescription" name="mapDescription"
-                                          placeholder="Your relationship map description" ref={descriptionRef}/>
+                    {!isCreated ?
+                        <div className="card-text mb-3">
+                            <div className="form-group row">
+                                <div className="col-md-12">
+                                    <textarea className="form-control" id="mapDescription" name="mapDescription"
+                                              placeholder="Your relationship map description" ref={descriptionRef}/>
+                                </div>
                             </div>
                         </div>
-                    </div>}
-                    {isCreated && description && <p className="card-text">{description}</p>}
-                    {!isCreated &&
+                        :
+                        <div className="card-text overflow-auto">
+                            <p>{description}</p>
+                        </div>
+                    }
+                    {!isCreated ?
                         <div className="d-grid gap-2">
                             <button className="btn btn-primary" onClick={handleCreateMapCard}
                                     disabled={isCreateBtnDisabled}>Create
                             </button>
                             <button className="btn btn-secondary" onClick={handleCancelMapCardCreation}>Cancel</button>
                         </div>
-                    }
-                    {isCreated &&
+                    :
                         <div className="d-grid gap-2">
                             <button className="btn btn-primary" onClick={handleEditMapCard}>Edit map</button>
                             <button className="btn btn-secondary" onClick={handleDeleteMapCard}>Delete map</button>

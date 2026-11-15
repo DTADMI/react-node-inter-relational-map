@@ -6,6 +6,7 @@ import {IMapCard, IPersonCard} from "../../../interfaces";
 import MapService from "../../../services/MapService";
 import Modal from "react-bootstrap/Modal";
 import Button from "react-bootstrap/Button";
+import {AxiosResponse} from "axios";
 
 export interface IPropsPersonForm {}
 const PersonForm: React.FunctionComponent<IPropsPersonForm> = (props: React.PropsWithChildren<IPropsPersonForm>) => {
@@ -35,10 +36,8 @@ const PersonForm: React.FunctionComponent<IPropsPersonForm> = (props: React.Prop
                 setLoading(true);
 
                 PersonService.addPersonCard({names, familyNames, titles} as IPersonCard)
-                    .then((response) => {
-                        return response.json();
-                    })
-                    .then((personData: IPersonCard)=>{
+                    .then((response: AxiosResponse)=> {
+                        const personData: IPersonCard = response.data;
                         if (personData.id) {
                             if(!currentMap.people) {
                                 currentMap.people = [] as string[];
@@ -48,10 +47,8 @@ const PersonForm: React.FunctionComponent<IPropsPersonForm> = (props: React.Prop
 
                         currentMap.lastModificationDate = new Date().toUTCString();
                         MapService.updateMapCard(currentMap)
-                            .then((response) => {
-                                return response.json();
-                            })
-                            .then((mapData: IMapCard) => {
+                            .then((response: AxiosResponse) => {
+                                const mapData: IMapCard = response.data;
                                 setCurrentMap(mapData);
                                 setPersonInCreation(false);
                             }).catch((error) => {
@@ -165,9 +162,14 @@ const PersonForm: React.FunctionComponent<IPropsPersonForm> = (props: React.Prop
                           </button>
                       </span>
                     </div>
-                    {!!names.length && <span>{names.reduce((prev, curr) => {
-                        return !prev ? curr : prev + "; " + curr
-                    })}</span>}
+                    {!!names.length &&
+                        <div className="border-light-subtle shadow">
+                            <span>{names.reduce((prev, curr) => {
+                                    return !prev ? curr : prev + "; " + curr
+                                })}
+                            </span>
+                        </div>
+                    }
                     <div className="input-group" style={{marginBottom: "1rem", paddingLeft: "13%"}}>
                       <span className="input-group-btn">
                           <button type="button" className="btn btn-danger" style={{height: "-webkit-fill-available"}} disabled={!familyNames.length}
@@ -192,9 +194,14 @@ const PersonForm: React.FunctionComponent<IPropsPersonForm> = (props: React.Prop
                           </button>
                       </span>
                     </div>
-                    {!!familyNames.length && <span>{familyNames.reduce((prev, curr) => {
-                        return !prev ? curr : prev + "; " + curr
-                    })}</span>}
+                    {!!familyNames.length &&
+                        <div className="border-light-subtle shadow">
+                            <span>{familyNames.reduce((prev, curr) => {
+                                    return !prev ? curr : prev + "; " + curr
+                                })}
+                            </span>
+                        </div>
+                    }
                     <div className="input-group" style={{marginBottom: "1rem", paddingLeft: "13%"}}>
                       <span className="input-group-btn">
                           <button type="button" className="btn btn-danger" style={{height: "-webkit-fill-available"}} disabled={!titles.length} onClick={handleRemoveTitle}>
@@ -217,9 +224,14 @@ const PersonForm: React.FunctionComponent<IPropsPersonForm> = (props: React.Prop
                         </button>
                       </span>
                     </div>
-                    {!!titles.length && <span>{titles.reduce((prev, curr) => {
-                        return !prev ? curr : prev + "; " + curr
-                    })}</span>}
+                    {!!titles.length &&
+                        <div className="border-light-subtle shadow">
+                            <span>{titles.reduce((prev, curr) => {
+                                    return !prev ? curr : prev + "; " + curr
+                                })}
+                            </span>
+                        </div>
+                    }
                 </Form>
             </Modal.Body>
             <Modal.Footer>

@@ -26,6 +26,7 @@ import {Connection, Edge} from "@reactflow/core/dist/esm/types";
 import RelationService from "../../../services/RelationService";
 import {MapsActionMenu} from "../../navigation/MapsActionMenu/MapsActionMenu";
 import {PacmanLoader} from "react-spinners";
+import {AxiosResponse} from "axios";
 
 const LOCAL_STORAGE_KEY = "CURRENT_USER";
 
@@ -106,17 +107,13 @@ export const MapDisplay = () => {
 
     const getMapById = (mapId: string) => {
         return MapService.getMapCardById(mapId)
-            .then((response) => {
-                return response.json();
-            })
-            .then((dataMap: IMapCard) => {
+            .then((response: AxiosResponse) => {
+                const dataMap: IMapCard = response.data;
                 console.log(`fetched map : ${dataMap}`);
                 dataMap.lastModificationDate = new Date().toUTCString();
                 MapService.updateMapCard(dataMap)
-                    .then((response)=>{
-                        return response.json();
-                    })
-                    .then((updatedMap: IMapCard) => {
+                    .then((resp: AxiosResponse) => {
+                        const updatedMap: IMapCard = resp.data;
                         console.log(`Updated map ${updatedMap}`);
                     });
                 return dataMap;
@@ -129,10 +126,8 @@ export const MapDisplay = () => {
 
     const getRelationshipsByMapId = (mapId: string) => {
         return RelationService.getRelationshipsInMap(mapId)
-            .then((response) => {
-                return response.json();
-            })
-            .then((relationships: IRelationCard[]) => {
+            .then((response: AxiosResponse) => {
+                const relationships: IRelationCard[] = response.data;
                 return relationships;
             })
             .catch((error)=>{
@@ -182,10 +177,8 @@ export const MapDisplay = () => {
                 .filter((relationship)=>relationship.includes(':') && currentMap.people.includes(relationship.split(':')[0]) && currentMap.people.includes(relationship.split(':')[1]))
                 .map((relationId: string) => {
                     return RelationService.getRelationCardById(relationId)
-                        .then((response) => {
-                            return response.json();
-                        })
-                        .then((relationData: IRelationCard) => {
+                        .then((response: AxiosResponse) => {
+                            const relationData: IRelationCard = response.data;
                             return {
                                 id: relationData.id,
                                 source: relationData.personSourceId,
@@ -214,10 +207,8 @@ export const MapDisplay = () => {
         //let newNodes = [] as Node[];
         const nodesCreatePromises = currentMap.people.map((personId: string, idx) => {
             return PersonService.getPersonCardById(personId)
-                .then((response) => {
-                    return response.json();
-                })
-                .then((personData: IPersonCard) => {
+                .then((response: AxiosResponse) => {
+                    const personData: IPersonCard = response.data;
                     return {
                         id: personData.id,
                         data: { label : personData.names?.length>0 ? personData.names.join(', ') : personData.id },
@@ -315,11 +306,8 @@ export const MapDisplay = () => {
                     return (memoCurrentMapRelationships && !memoCurrentMapRelationships.has([relCard.personSourceId, relCard.personTargetId].join(":"))) || false;
                 }).map((relCard: IRelationCard)=>{
                     return RelationService.addRelationCard(relCard)
-                        .then((response)=>{
-                            return response.json();
-                        })
-                        .then((relation: IRelationCard)=>{
-                            return relation;
+                        .then((response: AxiosResponse)=>{
+                            return response.data as IRelationCard;
                     }).catch((error) => {
                         console.error(`Error while creating relationships : ${JSON.stringify(error)}`);
                         throw new Error(`Error while creating relationships : ${JSON.stringify(error)}`);
